@@ -4,7 +4,7 @@ Calendar integration tool for the Scribe project.
 This module provides the CalendarIntegration class for managing calendar events and tracking deadlines.
 """
 
-from typing import List, Dict, Any, Optional
+from typing import List, Optional
 from datetime import datetime, timedelta
 from crewai.tools import BaseTool
 
@@ -64,6 +64,7 @@ class CalendarIntegration(BaseTool):
         else:
             return f"Unknown action: {action}"
     
+    @staticmethod
     def _schedule_event(self, 
                        event_title: Optional[str],
                        event_date: Optional[str],
@@ -99,6 +100,7 @@ class CalendarIntegration(BaseTool):
                 f"Attendees: {attendee_count}\n"
                 f"Calendar invitations sent to all attendees.")
     
+    @staticmethod
     def _check_availability(self, date: Optional[str]) -> str:
         """
         Check availability for a specific date.
@@ -116,6 +118,7 @@ class CalendarIntegration(BaseTool):
             
         return f"Availability for {date}: No events scheduled. The entire day is available."
     
+    @staticmethod
     def _list_events(self, 
                     start_date: Optional[str],
                     end_date: Optional[str]) -> str:
@@ -141,6 +144,7 @@ class CalendarIntegration(BaseTool):
             
         return f"Events from {start_date} to {end_date}: No events found."
     
+    @staticmethod
     def _set_reminder(self, 
                      event_title: Optional[str],
                      deadline: Optional[str],
@@ -165,6 +169,7 @@ class CalendarIntegration(BaseTool):
             
         return f"Reminder set for '{event_title}'. Reminder will be sent on {reminder_date}, {reminder_days} days before the deadline ({deadline})."
     
+    @staticmethod
     def _cancel_event(self, 
                      event_title: Optional[str],
                      event_date: Optional[str]) -> str:

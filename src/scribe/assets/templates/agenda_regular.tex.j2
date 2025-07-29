@@ -1,0 +1,64 @@
+\documentclass[14pt,twoside]{extarticle}
+\usepackage{fullpage}
+\usepackage{graphicx}
+\usepackage{ifthen}
+\usepackage{enumitem} % For customizing list spacing
+\newcommand{\meetingDate}{{ "{" }}{{ meetingDate }}{{ "}" }}
+\newcommand{\meetingTime}{{ "{" }}{{ meetingTime }}{{ "}" }}
+\newcommand{\nextMeetingDate}{{ "{" }}{{ nextMeetingDate }}{{ "}" }}
+%\newcommand{\header}{{ "{" }}{../assets/images/residentCouncilLogoSmall.pdf}{{ "}" }}
+\newcommand{\thisVenue}{{ "{" }}{{ thisVenue }}{{ "}" }}
+\newcommand{\nextVenue}{{ "{" }}{{ mextVenue }}{{ "}" }}
+\begin{document}
+\thispagestyle{empty}
+\begin{center}
+\includegraphics{../assets/images/residentCouncilLogoSmall.pdf} \\
+{
+   \large\bf \meetingDate, \meetingTime \\ \vspace{0.08in} 
+   \thisVenue \\ \vspace {0.08in}
+   Order of Business
+}
+\end{center}
+\section{Call to Order}
+\section{Attendance}
+\section{Approval of Minutes}
+\section{Officers' Reports}
+\begin{enumerate}[itemsep=1pt, parsep=0pt] % Adjust itemsep and parsep as needed
+	\item President: Luke Yackley
+	\item Vice President: Richard Compton
+	\item Treasurer: Charles Blair
+	\item Secretary: George Wright
+	\item Administrative Assistant: Lois Lashar
+\end{enumerate}
+\section{Liaison Reports}
+\begin{enumerate}[itemsep=1pt, parsep=0pt]
+	\item Building Maintenance: Lynda Fogle
+	\item Dining: Linda Compton
+	\item Employee Appreciation: Charles Blair
+	\item Environment/Landscape: Dan Hardesty
+	\item Finance: Charles Blair
+	\item Library: Weezie Brown
+	\item Scholarship: Charles Blair
+	\item Special Events \& Trips: Barb Siciliano
+	\item St.~Stephen's Green: Rich Compton
+%	\item Sustainability: Lynda Fogle
+\end{enumerate}
+\section{Executive Director's Report}
+\section{Unfinished Business}
+There are no pending motions or topics carried over from the last meeting.
+%\begin{enumerate}[itemsep=1pt, parsep=0pt]
+%	\item Review of Resident Satisfaction Survey report.
+%	\item Consolidation of Sustainability and Environment/Landscape Committees.
+%	\item Possibility of Stanley Steemer cleaning vents.
+%	\item Alternative options for farm truck produce sales.
+%	\item Timeline for Shannon entrance fountain.
+%\end{enumerate}
+
+\section{New Business}
+\begin{enumerate}[itemsep=1pt, parsep=0pt]
+	\item Motion to amend bylaws---Removal of Obsolete Footnote.
+\end{enumerate}
+\section{Next Meeting}
+\nextMeetingDate, \nextVenue.
+\section{Adjournment}
+\end{document}

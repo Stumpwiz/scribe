@@ -1,0 +1,52 @@
+\documentclass[14pt,twoside]{extarticle}
+\usepackage{fullpage}
+\usepackage{graphicx}
+\usepackage{enumitem} % For customizing list spacing
+\newcommand{\meetingDate}{{ "{" }}{{ meetingDate }}{{ "}" }}
+\newcommand{\meetingTime}{{ "{" }}{{ meetingTime }}{{ "}" }}
+\newcommand{\nextMeetingDate}{{ "{" }}{{ nextMeetingDate }}{{ "}" }}
+%\newcommand{\header}{{ "{" }}{../assets/images/residentCouncilLogoSmall.pdf}{{ "}" }}
+\newcommand{\thisVenue}{{ "{" }}{{ thisVenue }}{{ "}" }}
+\newcommand{\nextVenue}{{ "{" }}{{ mextVenue }}{{ "}" }}
+\begin{document}
+\thispagestyle{empty}
+\begin{center}
+\includegraphics{../assets/images/residentCouncilLogoSmall.pdf} \\
+\large\bf \meetingDate, \meetingTime \\ \vspace{0.08in} 
+\thisVenue \\ \vspace {0.08in}
+Order of Business
+\end{center}
+\section{Call to Order}
+\section{Attendance}
+\section{Approval of Minutes}
+\section{Officers' Reports}
+\begin{enumerate}[itemsep=1pt, parsep=0pt] % Adjust itemsep and parsep as needed
+	\item President: Luke Yackley
+	\item Vice President: Richard Compton
+	\item Treasurer: Charles Blair
+	\item Secretary: George Wright
+	\item Administrative Assistant: Lois Lashar
+\end{enumerate}
+\section{Committee Reports}
+\begin{enumerate}[itemsep=1pt, parsep=0pt]
+	\item Building Maintenance: Tom Scheurich
+	\item Dining: Gerry Buckley
+	\item Employee Appreciation: Jackie Troutman
+	\item Environment/Landscape: Ed Lehwald
+	\item Finance: Nancy Burke
+	\item Library: Evelyn Sedlack
+	\item Scholarship: Claire Ross\'{e}
+	\item Special Events \& Trips: Veronica Cryan
+	% \item St.~Stephen's Green: Rich Compton
+	%	\item Sustainability: Lynda Fogle
+\end{enumerate}\section{Executive Director's Report}
+\section{Unfinished Business}
+\section{New Business}
+%\begin{enumerate}[itemsep=1pt, parsep=0pt]
+%	\item Motion to amend bylaws---Removal of Obsolete Footnote.
+%\end{enumerate}
+\section{Questions from the Floor}
+\section{Next Meeting}
+\nextMeetingDate, \nextVenue.
+\section{Adjournment}
+\end{document}

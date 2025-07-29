@@ -1,7 +1,7 @@
 # Tasks Configuration for Scribe Project
 #
 # NOTE FOR SKELETON TEST RUN:
-# - Only the dummy tasks at the top of this file should be executed
+# - Only the fake tasks at the top of this file should be executed
 # - All other tasks are marked with 'skip: true' or will be filtered out
 # - This allows for testing the basic framework without implementing full functionality
 
@@ -76,8 +76,7 @@ schedule_meeting:
 
 send_meeting_notification:
   description: >
-    Send meeting notifications to all council members and committee chairs for the
-    upcoming meeting on {meeting_date}. Include the agenda template and request for agenda items.
+    Send a meeting reminder email for the given date, with all other information inferred automatically.
   expected_output: >
     Email notifications sent to all participants with meeting details, agenda template,
     and instructions for submitting agenda items by {submission_deadline}.
@@ -85,7 +84,9 @@ send_meeting_notification:
   tools:
     - email_service
     - calendar_integration
-  skip: true
+    - meeting_notification_tool
+  context:
+    meeting_date: 2025-08-07
 
 request_committee_reports:
   description: >

@@ -1,0 +1,67 @@
+[
+  {
+    "name": "Luke Yackley",
+    "email": "dcnluke50@gmail.com",
+    "role": "President"
+  },
+  {
+    "name": "Rich Compton",
+    "email": "richcompton@comcast.net",
+    "role": "Vice President"
+  }
+  {
+    "name": "Charles Blair",
+    "email": "anneandduck@verizon.net",
+    "role": "Treasurer"
+  }
+  {
+    "name": "George Wright",
+    "email": "geo@loyola.edu",
+    "role": "Secretary"
+  }
+  {
+    "name": "Lois Lashar",
+    "email": "lslashar@comcast.net",
+    "role": "Administrative Assistant"
+  }
+  {
+    "name": "Dan Hardesty",
+    "email": "dlrhardesty@comcast.net",
+    "role": "Liffey A"
+  }
+  {
+    "name": "Vacant",
+    "email": "geo@loyola.edu",
+    "role": "Liffey B"
+  }
+  {
+    "name": "Weezie Brown",
+    "email": "efbrown.68@gmail.com",
+    "role": "Liffey C"
+  }
+  {
+    "name": "Linda Compton",
+    "email": "lindacompton1@comcast.net",
+    "role": "Killarney D"
+  }
+  {
+    "name": "Barb Siciliano",
+    "email": "babsa1702@hotmail.com",
+    "role": "Shannon E"
+  }
+  {
+    "name": "Spence Lieske",
+    "email": "spence314@outlook.com",
+    "role": "Shannon F"
+  }
+  {
+    "name": "Lynda Fogle",
+    "email": "spm1971@aol.com",
+    "role": "Shannon G"
+  }
+  {
+    "name": "David Denton",
+    "email": "ddenton@mercyridge.com",
+    "role": "Execitive Director"
+  }
+]

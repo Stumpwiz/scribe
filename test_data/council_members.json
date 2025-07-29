@@ -1,0 +1,10 @@
+[
+  { "name": "John Smith", "email": "john.smith@example.com", "role": "Council President" },
+  { "name": "Jane Doe", "email": "jane.doe@example.com", "role": "Council Vice President" },
+  { "name": "Robert Johnson", "email": "robert.johnson@example.com", "role": "Council Secretary" },
+  { "name": "Emily Wilson", "email": "emily.wilson@example.com", "role": "Council Treasurer" },
+  { "name": "Michael Brown", "email": "michael.brown@example.com", "role": "Council Member" },
+  { "name": "Sarah Davis", "email": "sarah.davis@example.com", "role": "Council Member" },
+  { "name": "David Miller", "email": "david.miller@example.com", "role": "Committee Chair" },
+  { "name": "Lisa Garcia", "email": "lisa.garcia@example.com", "role": "Committee Chair" }
+]

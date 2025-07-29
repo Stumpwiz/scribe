@@ -12,6 +12,7 @@ ReminderAgent:
     - email_service  # For sending notifications and reminders
     - calendar_integration  # For tracking meeting schedules
     - output_tool  # For persisting email logs and reminder records
+    - meeting_notification_tool  # For creating and saving meeting notification drafts
   constraints:
     - Must send reminders at least 1 week before meetings
     - Must follow up 48 hours before deadlines if no response received

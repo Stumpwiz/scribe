@@ -5,7 +5,7 @@ This module provides the TaskConfig class for loading and parsing task configura
 from YAML files.
 """
 
-from typing import Dict, List, Any, Optional
+from typing import Dict, List
 import yaml
 from dataclasses import dataclass
 

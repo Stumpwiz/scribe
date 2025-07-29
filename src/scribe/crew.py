@@ -22,7 +22,8 @@ from scribe.tools import (
     TranscriptionService,
     LaTeXService,
     FTPService,
-    OutputTool
+    OutputTool,
+    MeetingNotificationTool
 )
 
 
@@ -81,7 +82,8 @@ def create_tool(tool_name: str) -> Any:
         "transcription_service": TranscriptionService(),
         "latex_service": LaTeXService(),
         "ftp_service": FTPService(),
-        "output_tool": OutputTool()
+        "output_tool": OutputTool(),
+        "meeting_notification_tool": MeetingNotificationTool()
     }
     
     return tools_map.get(tool_name)

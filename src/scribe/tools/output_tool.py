@@ -5,7 +5,7 @@ This module provides the OutputTool class for saving agent outputs and task resu
 to persistent log files.
 """
 
-from typing import Optional
+from typing import Optional, ClassVar
 import os
 from pathlib import Path
 from datetime import datetime
@@ -24,6 +24,9 @@ class OutputTool(BaseTool):
     
     name: str = "OutputTool"
     description: str = "Tool for saving content to persistent log files"
+    
+    # Compute base directory (project root) as a class attribute
+    base_dir: ClassVar[Path] = Path(__file__).resolve().parents[2]  # resolves to src/
     
     def _run(self, 
              content: str,
@@ -55,7 +58,7 @@ class OutputTool(BaseTool):
             str: The full path to the created log file
         """
         # Create the output/logs directory if it doesn't exist
-        logs_dir = Path(__file__).parent.parent / "output" / "logs"
+        logs_dir = self.base_dir / "scribe" / "output" / "logs"
         logs_dir.mkdir(parents=True, exist_ok=True)
         
         # Generate a timestamp for the filename
