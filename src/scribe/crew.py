@@ -11,8 +11,12 @@ import yaml
 from pathlib import Path
 from datetime import datetime
 import re
+import logging
 
 from crewai import Crew, Agent, Task
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 # Import tools from the scribe.tools package
 from scribe.tools import (
@@ -109,6 +113,7 @@ def create_agents(agent_configs: Dict[str, Dict[str, Any]]) -> Dict[str, Agent]:
                 tool = create_tool(tool_name)
                 if tool:
                     tools.append(tool)
+                    logger.info(f"Agent '{agent_name}' assigned tool: {tool_name}")
         
         # Create the agent
         agent = Agent(
@@ -121,6 +126,7 @@ def create_agents(agent_configs: Dict[str, Dict[str, Any]]) -> Dict[str, Agent]:
         )
         
         agents[agent_name] = agent
+        logger.info(f"Created agent: {agent_name}, role: {config.get('role', '')}, tools: {len(tools)}")
     
     return agents
 
@@ -150,12 +156,18 @@ def task_callback(result: str, task_name: str, agent_name: str) -> str:
     # Create the filename hint
     filename_hint = f"{safe_agent_name}_{safe_task_name}"
     
+    # Log task completion
+    logger.info(f"Task completed: agent='{agent_name}', task='{task_name}', timestamp={timestamp}")
+    
     # Use the OutputTool to save the task result
     output_tool = OutputTool()
     log_path = output_tool.run(
         content=f"Task: {task_name}\nAgent: {agent_name}\nTimestamp: {timestamp}\n\nResult:\n{result}",
         filename_hint=filename_hint
     )
+    
+    # Log the output file path
+    logger.info(f"Task output saved: path={log_path}")
     
     # Return the original result
     return result
@@ -177,13 +189,17 @@ def create_tasks(task_configs: Dict[str, Dict[str, Any]], agents: Dict[str, Agen
     """
     tasks = []
     
+    logger.info(f"Creating tasks from {len(task_configs)} task configurations")
+    
     for task_name, config in task_configs.items():
         # Skip tasks marked with skip: true
         if config.get("skip", False):
+            logger.info(f"Skipping task '{task_name}' (marked with skip=true)")
             continue
             
         agent_name = config.get("agent")
         if agent_name not in agents:
+            logger.warning(f"Skipping task '{task_name}': agent '{agent_name}' not found")
             continue
         
         # Create a callback function specific to this task and agent
@@ -198,7 +214,9 @@ def create_tasks(task_configs: Dict[str, Dict[str, Any]], agents: Dict[str, Agen
         )
         
         tasks.append(task)
+        logger.info(f"Created task: '{task_name}' assigned to agent '{agent_name}'")
     
+    logger.info(f"Created {len(tasks)} tasks in total")
     return tasks
 
 

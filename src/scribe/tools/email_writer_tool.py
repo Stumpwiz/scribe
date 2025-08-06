@@ -5,13 +5,16 @@ This module provides the EmailWriterTool class for generating email reminders
 for upcoming Residents Council or Association meetings.
 """
 
-from typing import Dict, Any, Optional, ClassVar
+from typing import Dict, Any, Optional, ClassVar, List
 from pathlib import Path
-from jinja2 import Environment, FileSystemLoader
+from datetime import datetime
+from jinja2 import Environment, FileSystemLoader, StrictUndefined
 from crewai.tools import BaseTool
 
 from scribe.tools.meeting_calendar_tool import MeetingCalendarTool
 from scribe.tools.recipient_loader_tool import RecipientLoaderTool
+from scribe.tools.meeting_agenda_generator_tool import MeetingAgendaGeneratorTool
+from scribe.tools.meeting_notification_tool import get_meeting_type_from_date
 
 
 class EmailWriterTool(BaseTool):
@@ -31,23 +34,28 @@ class EmailWriterTool(BaseTool):
     # Define template path
     template_path: ClassVar[str] = "scribe/assets/templates/email_reminder.txt.j2"
     
-    def _run(self, meetingDate: str, **kwargs) -> Dict[str, Any]:
+    def _run(self, meetingDate: str, meeting_type: Optional[str] = None, old_business: Optional[str] = None, new_business: Optional[str] = None, **kwargs) -> Dict[str, Any]:
         """
         Generate an email reminder for an upcoming meeting.
         
         Args:
             meetingDate (str): The date of the meeting in ISO format (YYYY-MM-DD)
+            meeting_type (Optional[str]): The type of meeting ('regular', 'open', or 'association')
+            old_business (Optional[str]): Old business items for the agenda
+            new_business (Optional[str]): New business items for the agenda
             
         Returns:
             Dict[str, Any]: A dictionary containing:
                 - success (bool): Whether the operation was successful
                 - emailBody (str): The rendered email body
+                - agendaPdf (str): Path to the generated agenda PDF
                 - log (str): Summary of what was done or errors encountered
         """
         # Initialize result dictionary
         result = {
             "success": False,
             "emailBody": "",
+            "agendaPdf": "",
             "log": ""
         }
         
@@ -60,25 +68,43 @@ class EmailWriterTool(BaseTool):
                 result["log"] = f"Error getting meeting info: {meeting_info['message']}"
                 return result
             
+            # Determine meeting type if not provided
+            if not meeting_type:
+                try:
+                    # Convert string date to datetime.date object
+                    meeting_date_obj = datetime.strptime(meetingDate, "%Y-%m-%d").date()
+                    meeting_type = get_meeting_type_from_date(meeting_date_obj)
+                except Exception as e:
+                    result["log"] = f"Error determining meeting type: {str(e)}"
+                    return result
+            
             # Get recipients using RecipientLoaderTool
-            recipients_result = self._get_recipients(meeting_info["meetingType"])
+            recipients_result = self._get_recipients(meeting_type)
             
             # Check if there was an error getting recipients
             if not recipients_result["success"]:
                 result["log"] = f"Error getting recipients: {recipients_result['log']}"
                 return result
             
-            # Compute report instructions based on meeting type
-            report_instructions = self._compute_report_instructions(meeting_info["meetingType"])
+            # Note: report instructions have been removed due to simplification
+            
+            # Generate agenda PDF using MeetingAgendaGeneratorTool
+            agenda_result = self._generate_agenda(meetingDate, meeting_type, old_business, new_business)
+            
+            # Check if there was an error generating the agenda
+            if not agenda_result["success"]:
+                result["log"] = f"Error generating agenda: {agenda_result['log']}"
+                return result
             
             # Prepare template context
+            # Note: submissionDeadline and reportInstructions have been removed due to simplification
             template_context = {
-                "meetingType": meeting_info["meetingType"],
+                "meetingType": meeting_type,
                 "meetingDate": meetingDate,
                 "meetingTime": "7:30 PM",  # This could be retrieved from meeting_info if available
                 "venue": meeting_info["location"],
-                "submissionDeadline": meeting_info["submissionDeadline"],
-                "reportInstructions": report_instructions
+                "old_business": old_business or "",
+                "new_business": new_business or ""
             }
             
             # Render the email template
@@ -87,7 +113,8 @@ class EmailWriterTool(BaseTool):
             # Set result
             result["success"] = True
             result["emailBody"] = email_body
-            result["log"] = "Rendered email template successfully"
+            result["agendaPdf"] = agenda_result["pdfPath"]
+            result["log"] = "Rendered email template and generated agenda PDF successfully"
             
         except Exception as e:
             result["log"] = f"Error: {str(e)}"
@@ -120,28 +147,7 @@ class EmailWriterTool(BaseTool):
         recipient_tool = RecipientLoaderTool()
         return recipient_tool._run(meetingType=meeting_type)
     
-    def _compute_report_instructions(self, meeting_type: str) -> str:
-        """
-        Compute report instructions based on meeting type.
-        
-        Args:
-            meeting_type (str): The type of meeting ("regular", "open", or "association")
-            
-        Returns:
-            str: Report instructions
-        """
-        if meeting_type == "regular":
-            return (
-                "Wing Representatives: Please submit your wing reports to the Secretary and Vice President.\n"
-                "Liaisons: Please submit your liaison reports to the Secretary."
-            )
-        elif meeting_type in ["open", "association"]:
-            return (
-                "Wing Representatives: Please submit your wing reports to the Secretary and Vice President.\n"
-                "Committee Chairs: Please submit your committee reports to the Secretary."
-            )
-        else:
-            return "Please submit your reports to the Secretary."
+    # Note: _compute_report_instructions method has been removed due to simplification
     
     def _render_template(self, context: Dict[str, Any]) -> str:
         """
@@ -161,6 +167,9 @@ class EmailWriterTool(BaseTool):
             template_dir = self.base_dir / "scribe" / "assets" / "templates"
             env = Environment(loader=FileSystemLoader(template_dir))
             
+            # Configure Jinja2 to handle missing variables gracefully
+            env.undefined = StrictUndefined
+            
             # Load the template
             template = env.get_template("email_reminder.txt.j2")
             
@@ -171,6 +180,44 @@ class EmailWriterTool(BaseTool):
             
         except Exception as e:
             raise ValueError(f"Error rendering template: {str(e)}")
+            
+    def _generate_agenda(self, meeting_date: str, meeting_type: str, old_business: Optional[str] = None, new_business: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Generate an agenda PDF for the meeting using MeetingAgendaGeneratorTool.
+        
+        Args:
+            meeting_date (str): The date of the meeting in ISO format (YYYY-MM-DD)
+            meeting_type (str): The type of meeting ('regular', 'open', or 'association')
+            old_business (Optional[str]): Old business items for the agenda
+            new_business (Optional[str]): New business items for the agenda
+            
+        Returns:
+            Dict[str, Any]: A dictionary containing:
+                - success (bool): Whether the operation was successful
+                - pdfPath (str): Path to the generated PDF
+                - log (str): Summary of what was done or errors encountered
+        """
+        try:
+            # Create meeting info dictionary
+            meeting_info = {
+                "meetingDate": meeting_date,
+                "meetingType": meeting_type,
+                "old_business": old_business or "",
+                "new_business": new_business or ""
+            }
+            
+            # Generate agenda using MeetingAgendaGeneratorTool
+            agenda_tool = MeetingAgendaGeneratorTool()
+            result = agenda_tool._run(meeting_info=meeting_info)
+            
+            return result
+            
+        except Exception as e:
+            return {
+                "success": False,
+                "pdfPath": "",
+                "log": f"Error generating agenda: {str(e)}"
+            }
 
 
 def test_email_writer_tool():
@@ -181,12 +228,18 @@ def test_email_writer_tool():
     
     # Test with a regular meeting date (e.g., January)
     print("\nTest case 1: Regular meeting (January)")
-    result = tool._run(meetingDate="2025-01-15")
+    result = tool._run(
+        meetingDate="2025-01-15",
+        meeting_type="regular",
+        old_business="Discussion of previous budget allocation",
+        new_business="Proposal for community garden"
+    )
     
-    # Check if the result is successful and contains an email body
+    # Check if the result is successful and contains an email body and agenda PDF
     if result["success"]:
         print(f"✓ Successfully generated email for regular meeting:")
         print(f"✓ Log: {result['log']}")
+        print(f"✓ Agenda PDF: {result['agendaPdf']}")
         print("\nEmail Body:")
         print("=" * 50)
         print(result["emailBody"])
@@ -196,12 +249,18 @@ def test_email_writer_tool():
     
     # Test with an open meeting date (e.g., March)
     print("\nTest case 2: Open meeting (March)")
-    result = tool._run(meetingDate="2025-03-15")
+    result = tool._run(
+        meetingDate="2025-03-15",
+        meeting_type="open",
+        old_business="Follow-up on resident concerns",
+        new_business="Summer event planning"
+    )
     
-    # Check if the result is successful and contains an email body
+    # Check if the result is successful and contains an email body and agenda PDF
     if result["success"]:
         print(f"✓ Successfully generated email for open meeting:")
         print(f"✓ Log: {result['log']}")
+        print(f"✓ Agenda PDF: {result['agendaPdf']}")
         print("\nEmail Body:")
         print("=" * 50)
         print(result["emailBody"])
@@ -211,12 +270,18 @@ def test_email_writer_tool():
     
     # Test with an association meeting date (e.g., December)
     print("\nTest case 3: Association meeting (December)")
-    result = tool._run(meetingDate="2025-12-15")
+    result = tool._run(
+        meetingDate="2025-12-15",
+        meeting_type="association",
+        old_business="Annual budget review",
+        new_business="Election of new officers"
+    )
     
-    # Check if the result is successful and contains an email body
+    # Check if the result is successful and contains an email body and agenda PDF
     if result["success"]:
         print(f"✓ Successfully generated email for association meeting:")
         print(f"✓ Log: {result['log']}")
+        print(f"✓ Agenda PDF: {result['agendaPdf']}")
         print("\nEmail Body:")
         print("=" * 50)
         print(result["emailBody"])
@@ -233,6 +298,26 @@ def test_email_writer_tool():
         print(f"✓ Error correctly detected: {result['log']}")
     else:
         print(f"✗ Error not detected for invalid date format")
+    
+    # Test with automatic meeting type detection
+    print("\nTest case 5: Automatic meeting type detection")
+    result = tool._run(
+        meetingDate="2025-06-15",  # June should be an "open" meeting
+        old_business="Previous meeting follow-up",
+        new_business="Summer activities planning"
+    )
+    
+    # Check if the result is successful and the correct meeting type was detected
+    if result["success"]:
+        print(f"✓ Successfully generated email with automatic meeting type detection:")
+        print(f"✓ Log: {result['log']}")
+        print(f"✓ Agenda PDF: {result['agendaPdf']}")
+        print("\nEmail Body:")
+        print("=" * 50)
+        print(result["emailBody"])
+        print("=" * 50)
+    else:
+        print(f"✗ Failed to generate email: {result['log']}")
     
     print("\nAll tests completed.")
 

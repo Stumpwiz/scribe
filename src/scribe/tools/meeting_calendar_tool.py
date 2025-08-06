@@ -17,7 +17,7 @@ class MeetingCalendarTool(BaseTool):
     Tool for deriving meeting information based on a given date.
     
     This tool accepts a meeting date and returns a dictionary containing
-    derived fields such as meeting type, location, submission deadline, etc.
+    derived fields such as meeting type, location, etc.
     based on predefined rules.
     """
     
@@ -113,8 +113,7 @@ class MeetingCalendarTool(BaseTool):
             meeting_body = "Residents Council"
             location = "McAuley Conference Room (MCR)"
         
-        # Calculate submission deadline (Friday before the meeting date)
-        submission_deadline = self._calculate_submission_deadline(date)
+        # Note: submission_deadline calculation has been removed due to simplification
         
         # Determine template and recipient file paths based on meeting type
         if meeting_type == "association":
@@ -137,32 +136,11 @@ class MeetingCalendarTool(BaseTool):
             raise ValueError(f"Unknown meeting type: {meeting_type}")
         
         # Return the derived meeting information with camelCase keys for LaTeX compatibility
+        # Note: submissionDeadline has been removed due to simplification
         return {
             "meetingType": meeting_type,
             "meetingBody": meeting_body,
             "location": location,
-            "submissionDeadline": submission_deadline.strftime("%Y-%m-%d"),
             "agendaTemplate": agenda_template,
             "recipientFile": recipient_file
         }
-    
-    def _calculate_submission_deadline(self, meeting_date: datetime) -> datetime:
-        """
-        Calculate the submission deadline (Friday before the meeting date).
-        
-        Args:
-            meeting_date (datetime): The meeting date
-            
-        Returns:
-            datetime: The submission deadline date
-        """
-        # Calculate days until the previous Friday (weekday 4 is Friday)
-        days_until_friday = (meeting_date.weekday() - 4) % 7
-        if days_until_friday == 0:
-            # If the meeting is on Friday, use the previous Friday
-            days_until_friday = 7
-        
-        # Calculate the Friday before the meeting
-        friday_before = meeting_date - timedelta(days=days_until_friday)
-        
-        return friday_before

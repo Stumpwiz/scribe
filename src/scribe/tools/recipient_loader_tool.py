@@ -26,7 +26,7 @@ class RecipientLoaderTool(BaseTool):
     base_dir: ClassVar[Path] = Path(__file__).resolve().parents[2]  # resolves to src/
     
     # Define file paths
-    council_members_file: ClassVar[str] = "scribe/assets/recipients/council_member.json"
+    council_members_file: ClassVar[str] = "scribe/assets/recipients/council_members.json"
     committee_chairs_file: ClassVar[str] = "scribe/assets/recipients/committee_chairs.json"
     
     def _run(self, meetingType: str, **kwargs) -> Dict[str, Any]:

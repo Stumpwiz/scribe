@@ -1,310 +1,343 @@
-# Tasks Configuration for Scribe Project
-#
-# NOTE FOR SKELETON TEST RUN:
-# - Only the fake tasks at the top of this file should be executed
-# - All other tasks are marked with 'skip: true' or will be filtered out
-# - This allows for testing the basic framework without implementing full functionality
-
-hello_world:
-  description: >
-    Say hello and confirm the system is working.
-  expected_output: >
-    A simple confirmation message that the agent is functioning.
-  agent: ReminderAgent
-  tools:
-    - output_tool
-
-echo_message:
-  description: >
-    Echo a placeholder message about the council's activities.
-  expected_output: >
-    A placeholder message about upcoming council activities.
-  agent: MinutesAgent
-  tools:
-    - output_tool
-
-test_archive:
-  description: >
-    Test the archive functionality with a placeholder document.
-  expected_output: >
-    A confirmation message that the archive system is operational.
+archive_committee_reports:
   agent: ArchiveAgent
+  description: 'Archive all committee reports and attachments from the council meeting
+    to the appropriate sections of the council website.
+
+    '
+  expected_output: 'Committee reports uploaded to website with proper organization
+    by committee and date. Index pages updated to include new reports.
+
+    '
+  tools:
+    - ftp_service
+    - file_tools
+create_meeting_backup:
+  agent: ArchiveAgent
+  description: 'Create backup copies of all documents related to the council meeting,
+    including minutes, reports, transcriptions, and recordings.
+
+    '
+  expected_output: 'Complete backup archive with all meeting-related documents stored
+    in the designated backup location with appropriate naming conventions.
+
+    '
+  tools:
+    - file_tools
+distribute_draft_minutes:
+  agent: MinutesAgent
+  description: 'Distribute the draft minutes for the council meeting to designated
+    reviewers (council officers, executive director) for review and feedback.
+
+    '
+  expected_output: 'Email to designated reviewers with attached draft minutes, review
+    instructions, and feedback deadline.
+
+    '
+  tools:
+    - email_service
+    - file_tools
+echo_message:
+  agent: MinutesAgent
+  description: 'Echo a placeholder message about the council''s activities.
+
+    '
+  expected_output: 'A placeholder message about upcoming council activities.
+
+    '
   tools:
     - output_tool
-
-format_test:
-  description: >
-    Test the formatting capabilities with a simple text sample.
-  expected_output: >
-    A confirmation that the formatting system is operational.
-  agent: FormatterAgent
-  tools:
-    - output_tool
-
-ingest_test:
-  description: >
-    Test the ingestion capabilities with a simple message.
-  expected_output: >
-    A confirmation that the ingestion system is operational.
+extract_email_attachments:
   agent: IngestorAgent
-  tools:
-    - output_tool
+  description: 'Extract and save attachments from emails related to the meeting. Verify
+    file integrity and organize by committee, wing, and content type.
 
+    '
+  expected_output: 'Extracted attachments saved to appropriate directories with metadata
+    (sender, timestamp, file type, committee/wing name).
+
+    '
+  tools:
+    - email_service
+    - file_tools
 feedback_test:
-  description: >
-    Test the feedback tracking capabilities with a simple review.
-  expected_output: >
-    A confirmation that the feedback system is operational.
   agent: FollowUpAgent
+  description: 'Test the feedback tracking capabilities with a simple review.
+
+    '
+  expected_output: 'A confirmation that the feedback system is operational.
+
+    '
   tools:
     - output_tool
+finalize_minutes:
+  agent: MinutesAgent
+  description: 'Generate final approved minutes for the council meeting after all
+    feedback has been incorporated and approved by the council president.
 
-# Pre-meeting Tasks
+    '
+  expected_output: 'Final approved minutes in PDF format, ready for distribution and
+    archiving. Includes all appendices and attachments.
 
-schedule_meeting:
-  description: >
-    Schedule a council meeting for {meeting_date} at {meeting_time} in {meeting_location}.
-    Check calendar for conflicts and notify all council members and committee chairs.
-  expected_output: >
-    A confirmed meeting schedule with calendar entries created for all participants.
-    A list of confirmed attendees and their roles.
+    '
+  tools:
+    - latex_service
+    - file_tools
+follow_up_pending_reports:
   agent: ReminderAgent
+  description: 'Follow up with committee chairs and wing reps who have not submitted
+    their reports for the meeting.
+
+    '
+  expected_output: 'Reminder emails sent to non-responsive committee chairs and wing
+    reps with urgent submission request. Updated tracking of report submission status.
+
+    '
+  skip: true
+  tools:
+    - email_service
+    - calendar_integration
+format_reports_for_minutes:
+  agent: FormatterAgent
+  description: 'Format committee and wing reports and meeting transcripts for inclusion
+    in the meeting minutes for the council/association meeting. Convert to appropriate
+    format for LaTeX.
+
+    '
+  expected_output: 'Formatted reports and transcripts ready for inclusion in LaTeX
+    minutes document. Tables, figures, and appendices properly formatted according
+    to council standards.
+
+    '
+  tools:
+    - latex_service
+    - file_tools
+format_test:
+  agent: FormatterAgent
+  description: 'Test the formatting capabilities with a simple text sample.
+
+    '
+  expected_output: 'A confirmation that the formatting system is operational.
+
+    '
+  tools:
+    - output_tool
+generate_draft_minutes:
+  agent: MinutesAgent
+  description: 'Generate draft minutes for the council meeting using the formatted
+    reports, transcriptions, and summaries.
+
+    '
+  expected_output: 'Complete draft minutes document in LaTeX format with all required
+    sections: attendance, approval of previous minutes, officers'' reports, liaison
+    reports, committee reports, guest reports, old business, new business, announcements,
+    and adjournment.
+
+    '
+  tools:
+    - latex_service
+    - file_tools
+hello_world:
+  agent: ReminderAgent
+  description: 'Say hello and confirm the system is working.
+
+    '
+  expected_output: 'A simple confirmation message that the agent is functioning.
+
+    '
+  tools:
+    - output_tool
+incorporate_feedback:
+  agent: MinutesAgent
+  description: 'Incorporate feedback and corrections from reviewers into the draft
+    minutes for the council meeting.
+
+    '
+  expected_output: 'Revised minutes document with all feedback addressed and changes
+    tracked. Version history maintained with summary of changes made.
+
+    '
+  tools:
+    - latex_service
+    - file_tools
+ingest_test:
+  agent: IngestorAgent
+  description: 'Test the ingestion capabilities with a simple message.
+
+    '
+  expected_output: 'A confirmation that the ingestion system is operational.
+
+    '
+  tools:
+    - output_tool
+monitor_email_inbox:
+  agent: IngestorAgent
+  description: 'Monitor the council secretary''s email inbox for new messages related
+    to the upcoming meeting. Check at least 3 times daily.
+
+    '
+  expected_output: 'A log of all incoming messages classified by type (report submission,
+    agenda item, attendance confirmation, question, etc.) and urgency.
+
+    '
+  tools:
+    - email_service
+prepare_next_agenda:
+  agent: MinutesAgent
+  description: 'Extract unfinished business and action items from the council meeting
+    minutes to prepare the agenda template for the next meeting.
+
+    '
+  expected_output: 'Draft agenda template for the next meeting with carried-over unfinished
+    business, action item follow-ups, and standard agenda sections.
+
+    '
+  tools:
+    - file_tools
+    - latex_service
+request_committee_reports:
+  agent: ReminderAgent
+  description: 'Request committee reports from all committee chairs and wing reps
+    for the upcoming meeting. Specify the required format.
+
+    '
+  expected_output: 'Email requests sent to all committee chairs and wing reps with
+    instructions for report format.
+
+    '
+  skip: true
+  tools:
+    - email_service
+schedule_meeting:
+  agent: ReminderAgent
+  description: 'Schedule a council meeting. Check calendar for conflicts and notify
+    all council members and committee chairs.
+
+    '
+  expected_output: 'A confirmed meeting schedule with calendar entries created for
+    all participants. A list of confirmed attendees and their roles.
+
+    '
+  skip: true
   tools:
     - calendar_integration
     - email_service
-  skip: true
-
 send_meeting_notification:
-  description: >
-    Send a meeting reminder email for the given date, with all other information inferred automatically.
-  expected_output: >
-    Email notifications sent to all participants with meeting details, agenda template,
-    and instructions for submitting agenda items by {submission_deadline}.
   agent: ReminderAgent
+  description: 'Send a meeting reminder email for the given date, with all other information
+    inferred automatically.
+
+    '
+  expected_output: 'Email notifications sent to all participants with meeting details
+    and agenda template.
+
+    '
+  input_variables:
+    - meeting_date
+    - meeting_type
+    - email_recipients
+    - old_business_items
+    - new_business_items
   tools:
     - email_service
     - calendar_integration
     - meeting_notification_tool
-  context:
-    meeting_date: 2025-08-07
-
-request_committee_reports:
-  description: >
-    Request committee reports from all committee chairs and wing reps for the upcoming meeting on {meeting_date}.
-    Specify the required format and submission deadline.
-  expected_output: >
-    Email requests sent to all committee chairs and wing reps with instructions for report format
-    and submission deadline of {submission_deadline}.
-  agent: ReminderAgent
-  tools:
-    - email_service
-  skip: true
-
-follow_up_pending_reports:
-  description: >
-    Follow up with committee chairs and wing reps who have not submitted their reports
-    48 hours before the {submission_deadline} for the meeting on {meeting_date}.
-  expected_output: >
-    Reminder emails sent to non-responsive committee chairs and wing reps with urgent submission request.
-    Updated tracking of report submission status.
-  agent: ReminderAgent
-  tools:
-    - email_service
-    - calendar_integration
-  skip: true
-
-# Content Processing Tasks
-
-monitor_email_inbox:
-  description: >
-    Monitor the council secretary's email inbox for new messages related to
-    the upcoming meeting on {meeting_date}. Check at least 3 times daily.
-  expected_output: >
-    A log of all incoming messages classified by type (report submission, agenda item,
-    attendance confirmation, question, etc.) and urgency.
-  agent: IngestorAgent
-  tools:
-    - email_service
-
-extract_email_attachments:
-  description: >
-    Extract and save attachments from emails related to the meeting on {meeting_date}.
-    Verify file integrity and organize by committee, wing, and content type.
-  expected_output: >
-    Extracted attachments saved to appropriate directories with metadata
-    (sender, timestamp, file type, committee/wing name).
-  agent: IngestorAgent
-  tools:
-    - email_service
-    - file_tools
-
-track_report_submissions:
-  description: >
-    Track the receipt of committee and wing reports for the meeting on {meeting_date}.
-    Compare against the list of expected reports and identify missing submissions.
-  expected_output: >
-    A status report showing received reports, missing reports, and submission timestamps.
-    Alerts for any reports not received by the {submission_deadline}.
-  agent: IngestorAgent
-  tools:
-    - file_tools
-    - email_service
-
-transcribe_meeting_recording:
-  description: >
-    Transcribe the audio recording of the council meeting held on {meeting_date}.
-    Identify speakers and key discussion points.
-  expected_output: >
-    A complete text transcription of the meeting with speaker identification,
-    timestamps, and highlighted action items and motions.
+summarize_meeting_content:
   agent: FormatterAgent
+  description: 'Create concise summaries of the meeting discussions, decisions, and
+    action items from the council meeting transcription.
+
+    '
+  expected_output: 'A structured summary of the meeting highlighting key decisions,
+    action items, motions passed, and assignments made, organized by agenda item.
+
+    '
+  tools:
+    - file_tools
+test_archive:
+  agent: ArchiveAgent
+  description: 'Test the archive functionality with a placeholder document.
+
+    '
+  expected_output: 'A confirmation message that the archive system is operational.
+
+    '
+  tools:
+    - output_tool
+track_report_submissions:
+  agent: IngestorAgent
+  description: 'Track the receipt of committee and wing reports for the meeting. Compare
+    against the list of expected reports and identify missing submissions.
+
+    '
+  expected_output: 'A status report showing received reports, missing reports, and
+    submission timestamps.
+
+    '
+  tools:
+    - file_tools
+    - email_service
+track_review_feedback:
+  agent: FollowUpAgent
+  description: 'Track receipt of feedback on draft minutes for the council meeting.
+    Follow up with reviewers who have not responded by the deadline.
+
+    '
+  expected_output: 'A tracking report showing feedback received, outstanding reviewers,
+    and a consolidated list of suggested corrections.
+
+    '
+  tools:
+    - email_service
+    - file_tools
+    - calendar_integration
+transcribe_meeting_recording:
+  agent: FormatterAgent
+  description: 'Transcribe the audio recording of the council meeting. Identify speakers
+    and key discussion points.
+
+    '
+  expected_output: 'A complete text transcription of the meeting with speaker identification,
+    timestamps, and highlighted action items and motions.
+
+    '
   tools:
     - transcription_service
     - file_tools
-
-format_reports_for_minutes:
-  description: >
-    Format committee and wing reports and meeting transcripts for inclusion in the meeting minutes
-    for the {meeting_date} council/association meeting. Convert to appropriate format for LaTeX.
-  expected_output: >
-    Formatted reports and transcripts ready for inclusion in LaTeX minutes document.
-    Tables, figures, and appendices properly formatted according to council standards.
-  agent: FormatterAgent
-  tools:
-    - latex_service
-    - file_tools
-
-summarize_meeting_content:
-  description: >
-    Create concise summaries of the meeting discussions, decisions, and action items
-    from the {meeting_date} council meeting transcription.
-  expected_output: >
-    A structured summary of the meeting highlighting key decisions, action items,
-    motions passed, and assignments made, organized by agenda item.
-  agent: FormatterAgent
-  tools:
-    - file_tools
-
-# Minutes Generation Tasks
-
-generate_draft_minutes:
-  description: >
-    Generate draft minutes for the council meeting held on {meeting_date} using
-    the formatted reports, transcriptions, and summaries.
-  expected_output: >
-    Complete draft minutes document in LaTeX format with all required sections:
-    attendance, approval of previous minutes, officers' reports, liaison reports, committee reports, guest reports,
-    old business, new business, announcements, and adjournment.
-  agent: MinutesAgent
-  tools:
-    - latex_service
-    - file_tools
-
-distribute_draft_minutes:
-  description: >
-    Distribute the draft minutes for the {meeting_date} council meeting to designated
-    reviewers (council officers, executive director) for review and feedback.
-  expected_output: >
-    Email to designated reviewers with attached draft minutes, review instructions,
-    and feedback deadline of {review_deadline}.
-  agent: MinutesAgent
-  tools:
-    - email_service
-    - file_tools
-
-track_review_feedback:
-  description: >
-    Track receipt of feedback on draft minutes for the {meeting_date} council meeting.
-    Follow up with reviewers who have not responded by the deadline.
-  expected_output: >
-    A tracking report showing feedback received, outstanding reviewers,
-    and a consolidated list of suggested corrections.
-  agent: FollowUpAgent
-  tools:
-    - email_service
-    - file_tools
-    - calendar_integration
-
-incorporate_feedback:
-  description: >
-    Incorporate feedback and corrections from reviewers into the draft minutes
-    for the {meeting_date} council meeting.
-  expected_output: >
-    Revised minutes document with all feedback addressed and changes tracked.
-    Version history maintained with summary of changes made.
-  agent: MinutesAgent
-  tools:
-    - latex_service
-    - file_tools
-
-finalize_minutes:
-  description: >
-    Generate final approved minutes for the {meeting_date} council meeting
-    after all feedback has been incorporated and approved by the council president.
-  expected_output: >
-    Final approved minutes in PDF format, ready for distribution and archiving.
-    Includes all appendices and attachments.
-  agent: MinutesAgent
-  tools:
-    - latex_service
-    - file_tools
-
-# Archive Management Tasks
-
-upload_minutes_to_website:
-  description: >
-    Upload the approved minutes for the {meeting_date} council meeting to the
-    council website in the appropriate section.
-  expected_output: >
-    Minutes uploaded to website with proper metadata, categorization, and access permissions.
-    Confirmation of successful upload with public URL.
-  agent: ArchiveAgent
-  tools:
-    - ftp_service
-    - file_tools
-
-archive_committee_reports:
-  description: >
-    Archive all committee reports and attachments from the {meeting_date} council meeting
-    to the appropriate sections of the council website.
-  expected_output: >
-    Committee reports uploaded to website with proper organization by committee and date.
-    Index pages updated to include new reports.
-  agent: ArchiveAgent
-  tools:
-    - ftp_service
-    - file_tools
-
 update_meeting_records:
-  description: >
-    Update the council's meeting records database with information from the
-    {meeting_date} council meeting, including attendance, key decisions, and action items.
-  expected_output: >
-    Updated meeting records database with complete information about the meeting.
-    Action items tracked with assignments and due dates.
   agent: ArchiveAgent
+  description: 'Update the council''s meeting records database with information from
+    the council meeting, including attendance, key decisions, and action items.
+
+    '
+  expected_output: 'Updated meeting records database with complete information about
+    the meeting. Action items tracked with assignments and due dates.
+
+    '
   tools:
+    - file_tools
+upload_minutes_to_website:
+  agent: ArchiveAgent
+  description: 'Upload the approved minutes for the council meeting to the council
+    website in the appropriate section.
+
+    '
+  expected_output: 'Minutes uploaded to website with proper metadata, categorization,
+    and access permissions. Confirmation of successful upload with public URL.
+
+    '
+  tools:
+    - ftp_service
     - file_tools
 
-create_meeting_backup:
-  description: >
-    Create backup copies of all documents related to the {meeting_date} council meeting,
-    including minutes, reports, transcriptions, and recordings.
-  expected_output: >
-    Complete backup archive with all meeting-related documents stored in the
-    designated backup location with appropriate naming conventions.
-  agent: ArchiveAgent
+generate_meeting_agenda:
+  description: Generate a LaTeX and PDF agenda for an upcoming meeting.
+  expected_output: Agenda files generated and stored in the output/agendas directory.
+  agent: clerk
   tools:
-    - file_tools
+    - MeetingAgendaGeneratorTool
+  input_variables:
+    - meeting_date
+    - location
+    - agenda_type
+    - log
 
-prepare_next_agenda:
-  description: >
-    Extract unfinished business and action items from the {meeting_date} council meeting
-    minutes to prepare the agenda template for the next meeting.
-  expected_output: >
-    Draft agenda template for the next meeting with carried-over unfinished business,
-    action item follow-ups, and standard agenda sections.
-  agent: MinutesAgent
-  tools:
-    - file_tools
-    - latex_service

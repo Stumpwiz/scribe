@@ -13,35 +13,52 @@ ReminderAgent:
     - calendar_integration  # For tracking meeting schedules
     - output_tool  # For persisting email logs and reminder records
     - meeting_notification_tool  # For creating and saving meeting notification drafts
+    - meeting_agenda_generator_tool  # For generating meeting agendas
   constraints:
     - Must send reminders at least 1 week before meetings
     - Must follow up 48 hours before deadlines if no response received
     - Must send out agenda 24 hours before a scheduled meeting
     - Must maintain professional tone in all communications
     - Must not send emails between 9 PM and 7 AM local time
+    - Must verify existence of agenda PDF (format: agenda_YYYY-MM-DD_<agenda_type>.pdf) in src/scribe/output/agendas/ before sending meeting reminders
+    - Must use meeting_agenda_generator_tool to create agenda if not found
+    - Must attach current agenda PDF to all meeting reminder emails
+    - Must use email_recipients provided in the kickoff context directly instead of resolving email addresses from role names
   tasks:
-    - Send meeting notifications with agenda requests
-    - Request committee reports prior to meetings
-    - Send reminder for pending report submissions
-    - Send meeting agenda
-    - Distribute draft minutes for review
+    - Send meeting notifications with agenda requests to provided email recipients
+    - Request committee reports prior to meetings from provided email recipients
+    - Send reminder for pending report submissions to provided email recipients
+    - Send meeting agenda to provided email recipients
+    - Distribute draft minutes for review to provided email recipients
     - Track response deadlines
+    - Verify agenda existence for upcoming meetings
+    - Trigger agenda generation using meeting_agenda_generator_tool when needed
+    - Attach generated agenda PDFs to meeting notifications
+    - Send confirmation emails only to the provided email recipients list
   collaborations:
     - MinutesAgent: Coordinate on draft minutes distribution
     - IngestorAgent: Alert when expected reports are received
     - FollowUpAgent: Hand off tracking of review feedback
+    - MinutesAgent: Coordinate on unfinished business for agenda generation
+    - FormatterAgent: Ensure proper formatting of agenda items
   examples:
     - type: meeting_reminder
       template: >
-        Subject: Reminder: Monthly Council Meeting - Report Submission
-        Dear {committee_chair},
+        Subject: Reminder: Monthly Council Meeting with Agenda
+        Dear Council Member,
         This is a friendly reminder that the monthly council meeting is scheduled for {meeting_date}.
         Please submit your committee report by {submission_deadline}.
+        
+        The agenda for this meeting is attached for your review.
+        
         Best regards,
         Council Secretary
   memory:
     type: persistent
     store: reminders_sent  # Track what reminders have been sent and when
+    track:
+      - Generated agenda status for each meeting
+      - Agenda distribution status
 
 IngestorAgent:
   role: >

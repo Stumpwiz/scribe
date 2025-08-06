@@ -40,18 +40,18 @@ class MeetingAgendaGeneratorTool(BaseTool):
             Dict[str, Any]: A dictionary containing:
                 - "success": True if the PDF was successfully created, else False
                 - "pdfPath": full path to the generated PDF (if success)
+                - "logPath": full path to the log file
                 - "log": log output from LaTeX compilation
         """
         try:
-            # Validate required fields
-            if "meetingDate" not in meeting_info:
+            # Validate required fields - accept both "meetingDate" and "date" keys
+            meeting_date = meeting_info.get("meetingDate") or meeting_info.get("date")
+            if not meeting_date:
                 return {
                     "success": False,
                     "pdfPath": None,
-                    "log": "Error: Required field 'meetingDate' is missing from meeting_info"
+                    "log": "Error: Required field 'meetingDate' or 'date' is missing from meeting_info"
                 }
-            
-            meeting_date = meeting_info["meetingDate"]
             logging.info(f"Generating agenda for meeting date: {meeting_date}")
             
             # Step 1: Use MeetingCalendarTool to enrich the context
@@ -87,17 +87,25 @@ class MeetingAgendaGeneratorTool(BaseTool):
             
             # Step 2: Use LaTeXAgendaTool to render the .tex file
             latex_agenda_tool = LaTeXAgendaTool()
-            tex_file_path = latex_agenda_tool._run(meeting_info=enriched_info)
+            tex_result = latex_agenda_tool._run(meeting_info=enriched_info)
             
             # Check for errors from LaTeXAgendaTool
-            if isinstance(tex_file_path, str) and (tex_file_path.startswith("Error:") or 
-                                                  tex_file_path.startswith("An unexpected error occurred:")):
+            if "error" in tex_result:
                 return {
                     "success": False,
                     "pdfPath": None,
-                    "log": f"Error from LaTeXAgendaTool: {tex_file_path}"
+                    "log": f"Error from LaTeXAgendaTool: {tex_result['error']}"
                 }
             
+            # Extract the tex file path from the result
+            if "texPath" not in tex_result:
+                return {
+                    "success": False,
+                    "pdfPath": None,
+                    "log": "Error: LaTeXAgendaTool did not return a texPath"
+                }
+                
+            tex_file_path = tex_result["texPath"]
             logging.info(f"LaTeX agenda file generated successfully: {tex_file_path}")
             
             # Step 3: Use LaTeXCompilerTool to compile the .tex to PDF

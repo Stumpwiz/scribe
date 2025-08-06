@@ -42,7 +42,7 @@ class LaTeXAgendaTool(BaseTool):
         except Exception as e:
             raise ValueError(f"Error rendering Jinja2 template: {str(e)}")
 
-    def run(self, meeting_info: Dict[str, Any]) -> Dict[str, Any]:
+    def _run(self, meeting_info: Dict[str, Any]) -> Dict[str, Any]:
         """
         Generate a .tex file for the given meeting date and type.
         """

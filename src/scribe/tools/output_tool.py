@@ -10,7 +10,13 @@ import os
 from pathlib import Path
 from datetime import datetime
 import re
+from pydantic import BaseModel, Field
 from crewai.tools import BaseTool
+
+
+class OutputToolSchema(BaseModel):
+    content: str
+    filename_hint: Optional[str] = None
 
 
 class OutputTool(BaseTool):
@@ -24,6 +30,7 @@ class OutputTool(BaseTool):
     
     name: str = "OutputTool"
     description: str = "Tool for saving content to persistent log files"
+    args_schema = OutputToolSchema
     
     # Compute base directory (project root) as a class attribute
     base_dir: ClassVar[Path] = Path(__file__).resolve().parents[2]  # resolves to src/
@@ -42,6 +49,11 @@ class OutputTool(BaseTool):
         Returns:
             str: The full path to the created log file
         """
+        # Ensure filename_hint has a default value if not provided
+        # This prevents validation errors when the parameter is required by the schema
+        if filename_hint is None:
+            filename_hint = "output"  # Default fallback name
+            
         return self._save_content(content, filename_hint)
     
     def _save_content(self, 

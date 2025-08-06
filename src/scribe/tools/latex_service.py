@@ -11,6 +11,7 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 from crewai.tools import BaseTool
 from jinja2 import Environment, FileSystemLoader
+from scribe.tools.latex_compiler_tool import LaTeXCompilerTool
 
 
 class LaTeXServiceSchema(BaseModel):
@@ -59,11 +60,28 @@ class LaTeXService(BaseTool):
         if action == "format":
             return self._format_content(content)
         elif action == "generate":
-            return self._generate_document(template, content, variables, output_file)
+            # Validate required parameters for generate action
+            if not template:
+                return "Error: Template path is required for 'generate' action"
+            if not output_file:
+                return "Error: Output file path is required for 'generate' action"
+            if not variables:
+                return "Error: Variables dictionary is required for 'generate' action"
+                
+            # Call _render_template() and return the path to the generated .tex file
+            self._generate_document(template, content, variables, output_file)
+            return output_file
         elif action == "compile":
+            # Validate required parameters for compile action
+            if not output_file:
+                return "Error: Output file path is required for 'compile' action"
+            if not output_file.endswith('.tex'):
+                return "Error: Output file must be a .tex file for 'compile' action"
+                
+            # Call _compile_document() with the previously rendered .tex file
             return self._compile_document(output_file)
         else:
-            return f"Unknown action: {action}"
+            return f"Unknown action: {action}. Supported actions are 'format', 'generate', and 'compile'."
 
     def _format_content(self, content: Optional[str]) -> str:
         """
@@ -91,9 +109,12 @@ class LaTeXService(BaseTool):
             jinja_template = env.get_template(template_name)
             rendered = jinja_template.render(**variables)
 
-            with open(output_file, 'w', encoding='utf-8') as f:
+            # Resolve the output file path to avoid LaTeX errors due to relative paths
+            resolved_output_file = Path(output_file).resolve()
+            
+            with open(resolved_output_file, 'w', encoding='utf-8') as f:
                 f.write(rendered)
-            return f"LaTeX document generated and saved to {output_file}"
+            return f"LaTeX document generated and saved to {resolved_output_file}"
         except Exception as e:
             return f"Error rendering LaTeX document: {e}"
 
@@ -107,15 +128,28 @@ class LaTeXService(BaseTool):
         Returns:
             str: Result of the compilation
         """
-        # In a real implementation, this would compile the LaTeX document
-        # For now, we'll just return a placeholder message
-        if not output_file:
-            return "Error: No output file provided"
-
-        pdf_file = os.path.splitext(output_file)[0] + ".pdf"
-
-        return (f"LaTeX document {output_file} compiled successfully.\n"
-                f"PDF output: {pdf_file}")
+        try:
+            # Validate input
+            if not output_file:
+                return "Error: No output file provided"
+                
+            # Create an instance of LaTeXCompilerTool
+            compiler = LaTeXCompilerTool()
+            
+            # Call the _run method with the tex file path
+            result = compiler._run(tex_file_path=output_file)
+            
+            # Check if compilation was successful
+            if result["success"]:
+                pdf_path = result["pdfPath"]
+                return f"LaTeX document {output_file} compiled successfully.\nPDF output: {pdf_path}"
+            else:
+                # Return error message with log information
+                return f"Error compiling LaTeX document {output_file}.\nLog: {result['log']}"
+                
+        except Exception as e:
+            # Handle any exceptions that might occur
+            return f"Exception while compiling LaTeX document: {str(e)}"
 
     def format_minutes(self,
                        meeting_type: str,
