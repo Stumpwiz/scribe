@@ -210,7 +210,7 @@ def create_tasks(task_configs: Dict[str, Dict[str, Any]], agents: Dict[str, Agen
             description=config.get("description", ""),
             expected_output=config.get("expected_output", ""),
             agent=agents[agent_name],
-            callback=create_callback()  # Add the callback function
+            callback=create_callback(),  # Add the callback function
         )
         
         tasks.append(task)

@@ -10,6 +10,9 @@ from pathlib import Path
 from datetime import datetime
 import shutil
 from crewai.tools import BaseTool
+from .email_inbox_monitor_tool import EmailInboxMonitorTool
+from .email_classifier_tool import EmailClassifierTool
+from .attachment_organizer_tool import AttachmentOrganizerTool
 
 
 class FileTools(BaseTool):
@@ -309,3 +312,16 @@ class FileTools(BaseTool):
         return (f"Created backup '{backup_name}' at {timestamp}.\n"
                 f"Backup location: {backup_directory}\n"
                 f"Files backed up: {file_count}")
+
+# Expose tool instances for registration in TOOL_REGISTRY
+file_tools = {
+    "email_inbox_monitor": EmailInboxMonitorTool(
+        name="EmailInboxMonitorTool",
+        description="Monitor Gmail inbox for committee reports."),
+    "email_classifier": EmailClassifierTool(
+        name="EmailClassifierTool",
+        description="Classify incoming emails by sender and subject."),
+    "attachment_organizer": AttachmentOrganizerTool(
+        name="AttachmentOrganizerTool",
+        description="Organize and save attachments or email bodies to structured directories."),
+}

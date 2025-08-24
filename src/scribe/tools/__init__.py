@@ -18,6 +18,9 @@ from scribe.tools.latex_agenda_tool import LaTeXAgendaTool
 from scribe.tools.latex_compiler_tool import LaTeXCompilerTool
 from scribe.tools.meeting_agenda_generator_tool import MeetingAgendaGeneratorTool
 from scribe.tools.email_writer_tool import EmailWriterTool
+from scribe.tools.email_inbox_monitor_tool import EmailInboxMonitorTool
+from scribe.tools.email_classifier_tool import EmailClassifierTool
+from scribe.tools.attachment_organizer_tool import AttachmentOrganizerTool
 
 __all__ = [
     'EmailService',
@@ -34,4 +37,7 @@ __all__ = [
     'LaTeXCompilerTool',
     'MeetingAgendaGeneratorTool',
     'EmailWriterTool',
+    'EmailInboxMonitorTool',
+    'EmailClassifierTool',
+    'AttachmentOrganizerTool',
 ]

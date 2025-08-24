@@ -341,3 +341,10 @@ generate_meeting_agenda:
     - agenda_type
     - log
 
+
+
+monitor_and_ingest_email_reports:
+  agent: IngestorAgent
+  description: "Monitors the inbox, classifies relevant incoming reports, and organizes their content for downstream processing."
+  expected_output: "A structured JSON object containing a success flag, list of processed reports, and output folder paths."
+  async_execution: false
