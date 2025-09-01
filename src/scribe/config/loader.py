@@ -8,6 +8,7 @@ from scribe.tools.calendar_integration import CalendarIntegration
 from scribe.tools.output_tool import OutputTool
 from scribe.tools.meeting_notification_tool import MeetingNotificationTool
 from scribe.tools.meeting_agenda_generator_tool import MeetingAgendaGeneratorTool
+from ..tools import file_tools
 
 CONFIG_DIR = Path(__file__).parent.resolve()
 AGENTS_PATH = os.path.join(os.path.dirname(__file__), "agents.yaml")
@@ -20,6 +21,7 @@ TOOL_REGISTRY = {
     "output_tool": OutputTool(),
     "meeting_notification_tool": MeetingNotificationTool(),
     "meeting_agenda_generator_tool": MeetingAgendaGeneratorTool(),
+    "file_tools": file_tools.FileTools(),
 }
 
 

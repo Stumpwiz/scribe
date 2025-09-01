@@ -14,6 +14,8 @@ Supports both CLI execution of the Crew and Flask-based UI for ReminderAgent.
 from typing import Optional, Dict, Any
 import logging
 import sys
+import argparse
+import json
 from pathlib import Path
 from datetime import datetime
 
@@ -60,8 +62,14 @@ def create_run_summary(result: Any, task_params: Optional[Dict[str, Any]] = None
         return f"Error saving run summary to file: {str(e)}"
 
 
-def main(task_params: Optional[dict] = None) -> None:
+def main(task_params: Optional[dict] = None) -> Any:
     setup_logging()
+    logging.info("Launching in CLI mode" if "--web" not in sys.argv else "Launching in Flask web mode")
+
+    if not hasattr(crew, "kickoff"):
+        logging.error("Crew is not initialized properly.")
+        return
+
     logging.info("Starting Scribe crew execution")
 
     try:
@@ -75,13 +83,28 @@ def main(task_params: Optional[dict] = None) -> None:
         raise
 
 
-def run(task_params: Optional[dict] = None) -> None:
+def run(task_params: Optional[dict] = None) -> Any:
     return main(task_params)
 
 
 if __name__ == "__main__":
-    if "--web" in sys.argv:
+    parser = argparse.ArgumentParser(description="Run the Scribe Crew or launch the web UI.")
+    parser.add_argument("--web", action="store_true", help="Run in Flask web mode")
+    parser.add_argument("--debug", action="store_true", help="Enable Flask debug mode")
+    parser.add_argument("--task_params", type=str, help="Optional JSON string of task parameters")
+
+    args = parser.parse_args()
+    task_params = None
+
+    if args.task_params:
+        try:
+            task_params = json.loads(args.task_params)
+        except json.JSONDecodeError as e:
+            logging.error(f"Invalid JSON for --task_params: {e}")
+            sys.exit(1)
+
+    if args.web:
         app = create_app()
-        app.run(debug=True)
+        app.run(debug=args.debug, host="0.0.0.0")
     else:
-        main()
+        main(task_params)

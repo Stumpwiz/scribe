@@ -169,7 +169,6 @@ rpds-py==0.26.0
 rsa==4.9.1
 schema==0.7.7
 # Editable Git install with no remote (scribe==0.1.0)
--e d:\projects\scribe
 sendgrid==6.12.4
 shellingham==1.5.4
 six==1.17.0
