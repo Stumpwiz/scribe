@@ -6,3 +6,6 @@ __pycache__/
 .idea/*
 src/scribe/output
 src/scribe/google_auth
+/docs/scribe_migration_cheat_sheet.pdf
+src/instance
+

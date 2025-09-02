@@ -15,7 +15,8 @@
 
 ```
 scribe/
-├── run_ingestor.py             # Entry point for the IngestorAgent
+├── scripts/
+│   └── run_ingestor.py         # Entry point for the IngestorAgent
 ├── src/
 │   └── scribe/
 │       ├── config/             # Agent/task YAMLs and loader logic
@@ -71,7 +72,7 @@ scribe/
 3. Authenticate Gmail using `google_auth_helper.py` (token saved locally).
 4. Run the inbox agent:
     ```bash
-    python run_ingestor.py
+    python scripts/run_ingestor.py
     ```
 
 ---
