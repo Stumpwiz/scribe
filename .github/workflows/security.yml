@@ -1,0 +1,43 @@
+name: Security Scan
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+  workflow_dispatch:
+
+jobs:
+  secrets-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run gitleaks
+        id: gitleaks
+        continue-on-error: true
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          args: detect --source . --report-format sarif --report-path gitleaks.sarif
+
+      - name: Upload gitleaks report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitleaks-report
+          path: gitleaks.sarif
+
+      - name: Set up Python
+        if: steps.gitleaks.outcome == 'failure'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Run fallback Python secret scan (if gitleaks failed or not found)
+        if: steps.gitleaks.outcome == 'failure'
+        run: |
+          python -m pip install --upgrade pip
+          python scripts/scan_secrets.py

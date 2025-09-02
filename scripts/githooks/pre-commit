@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "[pre-commit] Running secret scans..."
+
+# Prefer gitleaks if installed
+if command -v gitleaks >/dev/null 2>&1; then
+  echo "[pre-commit] gitleaks detect"
+  if ! gitleaks detect --no-git --source . >/dev/null 2>&1; then
+    echo "[pre-commit] gitleaks found potential leaks. See above."
+    gitleaks detect --no-git --source .
+    exit 1
+  fi
+else
+  echo "[pre-commit] gitleaks not found, skipping gitleaks scan."
+fi
+
+# Always run Python fallback
+if ! python3 scripts/scan_secrets.py; then
+  echo "[pre-commit] Python fallback scanner found potential secrets."
+  exit 1
+fi
+
+echo "[pre-commit] Secret scans passed."
+exit 0
