@@ -1,14 +1,9 @@
 """
 Main entry point for the Scribe project.
 
-This module imports the crew from crew.py and provides main and run functions
-to kickoff the crew's execution. The run function serves as an alias for the
-main function.
-"""
-
-"""
-Main entry point for the Scribe project.
 Supports both CLI execution of the Crew and Flask-based UI for ReminderAgent.
+This module imports the crew from crew.py and provides main and run functions
+to kickoff the crew's execution.
 """
 
 from typing import Optional, Dict, Any

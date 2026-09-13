@@ -1,10 +1,30 @@
 import logging
 import sys
-
-# Add the project root directory to the Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), \'..\')))
 import os
+import types
+
+# Add the src directory to the Python path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 from datetime import date, timedelta
+
+# Minimal shim so imports work in test environments without crewai installed.
+if "crewai" not in sys.modules:
+    crewai_mod = types.ModuleType("crewai")
+    crewai_tools_mod = types.ModuleType("crewai.tools")
+
+    class _BaseTool:  # pragma: no cover - shim only
+        pass
+
+    class _Task:  # pragma: no cover - shim only
+        def __init__(self, *args, **kwargs):
+            self.args = args
+            self.kwargs = kwargs
+
+    crewai_tools_mod.BaseTool = _BaseTool
+    crewai_mod.Task = _Task
+    crewai_mod.tools = crewai_tools_mod
+    sys.modules["crewai"] = crewai_mod
+    sys.modules["crewai.tools"] = crewai_tools_mod
 
 # Configure logging to output to console
 logging.basicConfig(level=logging.INFO, 

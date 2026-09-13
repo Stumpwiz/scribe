@@ -3,9 +3,25 @@ __pycache__/
 .DS_Store
 .venv
 .idea
+.idea/
 .idea/*
 src/scribe/output
+src/scribe/input
 src/scribe/google_auth
-/docs/scribe_migration_cheat_sheet.pdf
 src/instance
+# Private recipients directory (keep real emails out of Git)
+instance/recipients
+# Keep local logs out of VCS
+*.log
+*.pdf
+src/scribe/scribe.log
+src/scribe/input/*.txt
 
+/src/scribe/assets/reports/Missing Report.docx
+/scripts/src/scribe/input/new_business.txt
+/scripts/src/scribe/input/old_business.txt
+
+# Local archives and generated packaging metadata
+src/scribe/output.zip
+instance/reminders_archive/
+*.egg-info/

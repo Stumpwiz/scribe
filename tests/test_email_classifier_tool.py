@@ -12,7 +12,7 @@ if __name__ == "__main__":
     samples = [
         {
             "message_id": "abc123",
-            "from": "Officer One <georgemartinwright@gmail.com>",
+            "from": "Officer One <user4@example.com>",
             "subject": "Treasurer report and attachments",
             "has_attachments": True,
             "attachment_filenames": ["treasurer_report.pdf"],

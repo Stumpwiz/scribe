@@ -2,12 +2,11 @@
 \usepackage{fullpage}
 \usepackage{graphicx}
 \usepackage{enumitem} % For customizing list spacing
-\newcommand{\meetingDate}{{ "{" }}{{ meetingDate }}{{ "}" }}
+\input{meeting_dates.tex}
 \newcommand{\meetingTime}{{ "{" }}{{ meetingTime }}{{ "}" }}
-\newcommand{\nextMeetingDate}{{ "{" }}{{ nextMeetingDate }}{{ "}" }}
 %\newcommand{\header}{{ "{" }}{../assets/images/residentCouncilLogoSmall.pdf}{{ "}" }}
 \newcommand{\thisVenue}{{ "{" }}{{ thisVenue }}{{ "}" }}
-\newcommand{\nextVenue}{{ "{" }}{{ mextVenue }}{{ "}" }}
+\newcommand{\nextMeetingLocation}{{ "{" }}{{ nextMeetingLocation }}{{ "}" }}
 \begin{document}
 \thispagestyle{empty}
 \begin{center}
@@ -21,32 +20,40 @@ Order of Business
 \section{Approval of Minutes}
 \section{Officers' Reports}
 \begin{enumerate}[itemsep=1pt, parsep=0pt] % Adjust itemsep and parsep as needed
-	\item President: Luke Yackley
-	\item Vice President: Richard Compton
-	\item Treasurer: Charles Blair
-	\item Secretary: George Wright
-	\item Administrative Assistant: Lois Lashar
+{% for officer in officers -%}
+	\item {{ officer.label }}: {{ officer.incumbent }}
+{% endfor -%}
 \end{enumerate}
 \section{Committee Reports}
 \begin{enumerate}[itemsep=1pt, parsep=0pt]
-	\item Building Maintenance: Tom Scheurich
-	\item Dining: Gerry Buckley
-	\item Employee Appreciation: Jackie Troutman
-	\item Environment/Landscape: Ed Lehwald
-	\item Finance: Nancy Burke
-	\item Library: Evelyn Sedlack
-	\item Scholarship: Claire Ross\'{e}
-	\item Special Events \& Trips: Veronica Cryan
-	% \item St.~Stephen's Green: Rich Compton
-	%	\item Sustainability: Lynda Fogle
-\end{enumerate}\section{Executive Director's Report}
+{% for report in association_reports -%}
+	\item {{ report.label }}: {{ report.incumbent }}
+{% endfor -%}
+\end{enumerate}
+\section{Executive Director's Report}
 \section{Unfinished Business}
+{% if oldBusinessItems and oldBusinessItems|length > 0 -%}
+\begin{enumerate}[itemsep=1pt, parsep=0pt]
+{% for item in oldBusinessItems -%}
+\item {{ item }}
+{% endfor -%}
+\end{enumerate}
+{%- else -%}
+There are no pending motions or topics carried over from the last meeting.
+{%- endif %}
+
 \section{New Business}
-%\begin{enumerate}[itemsep=1pt, parsep=0pt]
-%	\item Motion to amend bylaws---Removal of Obsolete Footnote.
-%\end{enumerate}
+{% if newBusinessItems and newBusinessItems|length > 0 -%}
+\begin{enumerate}[itemsep=1pt, parsep=0pt]
+{% for item in newBusinessItems -%}
+\item {{ item }}
+{% endfor -%}
+\end{enumerate}
+{%- else -%}
+No new business items have been submitted.
+{%- endif %}
 \section{Questions from the Floor}
 \section{Next Meeting}
-\nextMeetingDate, \nextVenue.
+\nextMeetingDate, \nextMeetingLocation.
 \section{Adjournment}
 \end{document}

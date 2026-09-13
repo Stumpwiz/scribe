@@ -19,7 +19,7 @@ reminder_task = load_task_from_yaml(
     context={
         "meeting_date": "2025-08-12",  # You can dynamically set this if desired
         "location": "Conference Room A",
-        "email_recipients": ["geo@loyola.edu"],
+        "email_recipients": ["user2@example.com"],
         "include_agenda_template": True,
         "agenda_type": "council"  # Optional, but helps select the right template
     }
@@ -78,7 +78,7 @@ def process_agenda_result(task_output):
             return
             
         # If no .tex files found, try to extract path from the output
-        tex_match = re.search(r'texPath["\']?\s*:\s*["\']?(.*?\.tex)["\']?', task_output.raw)
+        tex_match = re.search(r'texPath["']?\s*:\s*["']?(.*?\.tex)["']?', task_output.raw)
         if tex_match:
             tex_path = tex_match.group(1)
             print(f"Found TEX path with regex: {tex_path}")

@@ -10,7 +10,7 @@ from pathlib import Path
 from datetime import datetime
 from pydantic import BaseModel, Field
 from crewai.tools import BaseTool
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, StrictUndefined
 from scribe.tools.latex_compiler_tool import LaTeXCompilerTool
 
 
@@ -103,7 +103,10 @@ class LaTeXService(BaseTool):
     def _generate_document(self, template: str, content: Optional[str], variables: Dict[str, Any],
                            output_file: str) -> str:
         templates_dir = self.base_dir / "scribe" / "assets" / "templates"
-        env = Environment(loader=FileSystemLoader(templates_dir.as_posix()))
+        env = Environment(
+            loader=FileSystemLoader(templates_dir.as_posix()),
+            undefined=StrictUndefined
+        )
         try:
             template_name = os.path.basename(template)
             jinja_template = env.get_template(template_name)
@@ -111,6 +114,12 @@ class LaTeXService(BaseTool):
 
             # Resolve the output file path to avoid LaTeX errors due to relative paths
             resolved_output_file = Path(output_file).resolve()
+            resolved_output_file.parent.mkdir(parents=True, exist_ok=True)
+
+            meeting_dates_template = env.get_template("meeting_dates.tex.j2")
+            meeting_dates = meeting_dates_template.render(**variables)
+            meeting_dates_path = resolved_output_file.parent / "meeting_dates.tex"
+            meeting_dates_path.write_text(meeting_dates, encoding="utf-8")
             
             with open(resolved_output_file, 'w', encoding='utf-8') as f:
                 f.write(rendered)

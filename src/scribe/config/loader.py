@@ -1,18 +1,24 @@
 import os
+import logging
 import yaml
 from pathlib import Path
 from crewai import Agent, Task
+from importlib import import_module
 
 from scribe.tools.email_service import EmailService
 from scribe.tools.calendar_integration import CalendarIntegration
 from scribe.tools.output_tool import OutputTool
 from scribe.tools.meeting_notification_tool import MeetingNotificationTool
 from scribe.tools.meeting_agenda_generator_tool import MeetingAgendaGeneratorTool
+from scribe.tools.database_query_tool import DatabaseQueryTool
 from ..tools import file_tools
 
 CONFIG_DIR = Path(__file__).parent.resolve()
 AGENTS_PATH = os.path.join(os.path.dirname(__file__), "agents.yaml")
 TASKS_PATH = CONFIG_DIR / "tasks.yaml"
+
+# Logger for this module
+logger = logging.getLogger(__name__)
 
 # Map of string names to actual tool instances
 TOOL_REGISTRY = {
@@ -21,6 +27,7 @@ TOOL_REGISTRY = {
     "output_tool": OutputTool(),
     "meeting_notification_tool": MeetingNotificationTool(),
     "meeting_agenda_generator_tool": MeetingAgendaGeneratorTool(),
+    "database_query_tool": DatabaseQueryTool(),
     "file_tools": file_tools.FileTools(),
 }
 
@@ -113,3 +120,87 @@ def load_task_from_yaml(task_id: str, context: dict = None) -> Task:
     print("TASK SPEC DEBUG (after interpolation and validation):", task_spec)
     
     return Task(**task_spec)
+
+
+def execute_formatter_format_agenda(tasks_path: Path = TASKS_PATH) -> str | None:
+    """
+    Load tasks.yaml, locate the FormatterAgent's FormatAgenda task, and execute it
+    by directly calling FormatterTool().format_agenda_from_template(meeting_type, context).
+
+    This function avoids any crew.kickoff() and does not rely on a tool registry.
+    It is intended for CLI/programmatic use and logs progress and errors.
+
+    Args:
+        tasks_path: Optional override path to tasks.yaml
+
+    Returns:
+        The absolute path to the generated PDF on success; None on failure.
+    """
+    try:
+        with open(tasks_path, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f)
+    except FileNotFoundError:
+        logger.error("tasks.yaml not found at %s", tasks_path)
+        return None
+    except Exception as e:
+        logger.exception("Failed to load tasks.yaml: %s", e)
+        return None
+
+    # Normalize tasks into an iterable of (name, task_spec) pairs
+    items = []
+    if isinstance(data, list):
+        for idx, item in enumerate(data):
+            if isinstance(item, dict):
+                # If 'name' is present, use that as identifier; else use index
+                name = item.get("name") or f"task_{idx}"
+                items.append((name, item))
+    elif isinstance(data, dict):
+        items = list(data.items())
+    else:
+        logger.error("Unsupported tasks.yaml structure: %s", type(data))
+        return None
+
+    # Find the target task
+    target = None
+    for key, task in items:
+        if not isinstance(task, dict):
+            continue
+        agent = task.get("agent")
+        name_field = task.get("name")
+        if agent == "FormatterAgent" and ((name_field == "FormatAgenda") or (name_field is None and key == "FormatAgenda")):
+            target = task
+            break
+
+    if not target:
+        logger.error("FormatAgenda task for FormatterAgent not found in %s", tasks_path)
+        return None
+
+    args = target.get("args", {}) or {}
+    meeting_type = args.get("meeting_type")
+    context = args.get("context")
+
+    if not meeting_type:
+        logger.error("FormatAgenda task is missing args.meeting_type")
+        return None
+    if context is None:
+        logger.error("FormatAgenda task is missing args.context")
+        return None
+
+    # Dynamically import and execute the tool
+    try:
+        module = import_module("scribe.tools.formatter_tool")
+        FormatterTool = getattr(module, "FormatterTool")
+        tool = FormatterTool()
+    except Exception as e:
+        logger.exception("Failed to import or instantiate FormatterTool: %s", e)
+        return None
+
+    logger.info("Executing FormatterTool.format_agenda_from_template: meeting_type=%s", meeting_type)
+    try:
+        pdf_path = tool.format_agenda_from_template(meeting_type, context)
+        logger.info("Agenda PDF generated: %s", pdf_path)
+        print(pdf_path)  # Also print to stdout for CLI use
+        return pdf_path
+    except Exception as e:
+        logger.exception("Agenda generation failed: %s", e)
+        return None

@@ -2,7 +2,7 @@ import logging
 import sys
 
 # Add the project root directory to the Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), \'..\')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from pathlib import Path
 import json
 import os
@@ -152,7 +152,7 @@ def test_get_recipients_empty():
         
         # Verify that the fallback email is used
         assert len(recipients) == 1, f"Expected 1 recipient (fallback), got {len(recipients)}"
-        assert recipients[0] == "geo@loyola.edu", f"Expected fallback email 'geo@loyola.edu', got {recipients[0]}"
+        assert recipients[0] == "user2@example.com", f"Expected fallback email 'user2@example.com', got {recipients[0]}"
         
         logger.info("Test passed: Fallback email is used when JSON files are empty")
         return True
@@ -192,7 +192,7 @@ def test_get_recipients_missing_files():
         
         # Verify that the fallback email is used
         assert len(recipients) == 1, f"Expected 1 recipient (fallback), got {len(recipients)}"
-        assert recipients[0] == "geo@loyola.edu", f"Expected fallback email 'geo@loyola.edu', got {recipients[0]}"
+        assert recipients[0] == "user2@example.com", f"Expected fallback email 'user2@example.com', got {recipients[0]}"
         
         logger.info("Test passed: Fallback email is used when JSON files are missing")
         return True

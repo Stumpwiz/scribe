@@ -1,6 +1,8 @@
 
 # Scribe: AI-Powered Secretary Assistant
 
+[![CI](https://github.com/Stumpwiz/scribe/actions/workflows/ci.yml/badge.svg)](https://github.com/Stumpwiz/scribe/actions/workflows/ci.yml)
+
 **Scribe** is an AI-based assistant tailored to automate the secretarial workflows of a Residents Council or similar governance body. It uses CrewAI agents and tools to monitor an inbox, classify incoming reports, extract relevant content, and support agenda and minutes preparation.
 
 ---
@@ -69,10 +71,14 @@ scribe/
     source .venv/bin/activate  # or .venv\Scripts\activate on Windows
     pip install -r requirements.txt
     ```
-3. Authenticate Gmail using `google_auth_helper.py` (token saved locally).
-4. Run the inbox agent:
+3. Install the package in editable mode to enable the console script:
     ```bash
-    python scripts/run_ingestor.py
+    pip install -e .
+    ```
+4. Authenticate Gmail using `google_auth_helper.py` (token saved locally).
+5. Run the inbox agent via the CLI:
+    ```bash
+    scribe-ingest
     ```
 
 ---
@@ -88,3 +94,33 @@ scribe/
 
 **Author:** George Wright  
 **Status:** In Development 🚧  
+
+## Publishing committee minutes
+
+Committee minutes are converted from DOCX to PDF and placed in the MRRA digital
+archive. The archive is the authoritative record; `index.html` receives only a
+link to that archived PDF. LibreOffice must be installed and available as
+`soffice` (or `libreoffice`) on `PATH`.
+
+Preview the conversion and proposed link change (the default is a dry run):
+
+```bash
+uv run python -m src.scribe.cli.archive_committee_minutes \
+    --committee SE \
+    --month 2026-07 \
+    --source "/path/to/minutes.docx" \
+    --site-root "/path/to/mrra"
+```
+
+Apply the archive and website changes:
+
+```bash
+uv run python -m src.scribe.cli.archive_committee_minutes \
+    --committee SE \
+    --month 2026-07 \
+    --source "/path/to/minutes.docx" \
+    --site-root "/path/to/mrra" \
+    --apply
+```
+
+An existing destination PDF is refused unless `--force` is also supplied.

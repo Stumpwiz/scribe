@@ -13,8 +13,8 @@ creds = Credentials.from_authorized_user_file(TOKEN_PATH, SCOPES)
 service = build("gmail", "v1", credentials=creds)
 
 message = MIMEText("This is a test email from the direct API.")
-message["to"] = "georgemartinwright@gmail.com"
-message["from"] = "georgemartinwright@gmail.com"
+message["to"] = "user4@example.com"
+message["from"] = "user4@example.com"
 message["subject"] = "Test Email via Direct API"
 
 raw = base64.urlsafe_b64encode(message.as_bytes()).decode()

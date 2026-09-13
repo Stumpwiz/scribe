@@ -7,12 +7,21 @@ by orchestrating multiple tools: MeetingCalendarTool, LaTeXAgendaTool, and LaTeX
 
 import os
 import logging
-from typing import Dict, Any, Optional
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, Any
 from crewai.tools import BaseTool
 
 from scribe.tools.meeting_calendar_tool import MeetingCalendarTool
 from scribe.tools.latex_agenda_tool import LaTeXAgendaTool
 from scribe.tools.latex_compiler_tool import LaTeXCompilerTool
+from scribe.meeting.agenda_context import AgendaContextBuilder
+from scribe.meeting.meeting_config import (
+    MEETING_TIME,
+    meeting_location_for_type,
+    next_meeting_type_for_date,
+)
+from scribe.meeting.meeting_dates import cycle_from_meeting_date
 
 
 class MeetingAgendaGeneratorTool(BaseTool):
@@ -26,7 +35,12 @@ class MeetingAgendaGeneratorTool(BaseTool):
     
     name: str = "MeetingAgendaGeneratorTool"
     description: str = "Tool for generating meeting agendas as PDF files"
-    
+    _TEMPLATE_BY_MEETING_TYPE = {
+        "regular": "agenda_regular.tex.j2",
+        "open": "agenda_open.tex.j2",
+        "association": "agenda_association.tex.j2",
+    }
+
     def _run(self, meeting_info: Dict[str, Any], **kwargs) -> Dict[str, Any]:
         """
         Generate a meeting agenda PDF by orchestrating multiple tools.
@@ -44,19 +58,19 @@ class MeetingAgendaGeneratorTool(BaseTool):
                 - "log": log output from LaTeX compilation
         """
         try:
-            # Validate required fields - accept both "meetingDate" and "date" keys
-            meeting_date = meeting_info.get("meetingDate") or meeting_info.get("date")
-            if not meeting_date:
+            # Validate required fields - prioritize ISO format "date" key over formatted "meetingDate"
+            meeting_date_iso = meeting_info.get("date") or meeting_info.get("meetingDate")
+            if not meeting_date_iso:
                 return {
                     "success": False,
                     "pdfPath": None,
-                    "log": "Error: Required field 'meetingDate' or 'date' is missing from meeting_info"
+                    "log": "Error: Required field 'date' or 'meetingDate' is missing from meeting_info"
                 }
-            logging.info(f"Generating agenda for meeting date: {meeting_date}")
-            
-            # Step 1: Use MeetingCalendarTool to enrich the context
+            logging.info(f"Generating agenda for meeting date: {meeting_date_iso}")
+
+            # Step 1: Use MeetingCalendarTool to enrich the context (requires ISO format)
             calendar_tool = MeetingCalendarTool()
-            calendar_result = calendar_tool._run(meeting_date=meeting_date)
+            calendar_result = calendar_tool._run(meeting_date=meeting_date_iso)
             
             # Check for errors from MeetingCalendarTool
             if "error" in calendar_result and calendar_result["error"]:
@@ -68,20 +82,48 @@ class MeetingAgendaGeneratorTool(BaseTool):
             
             # Merge the calendar result with the input meeting_info
             enriched_info = {**calendar_result, **meeting_info}
+
+            # Keep meeting type/template/location internally consistent.
+            resolved_meeting_type = str(
+                meeting_info.get("meetingType") or calendar_result.get("meetingType") or ""
+            ).strip().lower()
+            if not resolved_meeting_type:
+                return {
+                    "success": False,
+                    "pdfPath": None,
+                    "log": "Error: Could not resolve meetingType from meeting_info/calendar result",
+                }
+            if resolved_meeting_type not in self._TEMPLATE_BY_MEETING_TYPE:
+                return {
+                    "success": False,
+                    "pdfPath": None,
+                    "log": f"Error: Unsupported meetingType '{resolved_meeting_type}'",
+                }
+            enriched_info["meetingType"] = resolved_meeting_type
+
+            template_name = self._TEMPLATE_BY_MEETING_TYPE[resolved_meeting_type]
+            templates_dir = Path(__file__).resolve().parent.parent / "assets" / "templates"
+            enriched_info["agendaTemplate"] = str((templates_dir / template_name).resolve())
+
+            if not enriched_info.get("location"):
+                enriched_info["location"] = meeting_location_for_type(resolved_meeting_type)
             
-            # Add additional required fields for the template if not already present
-            if "meetingTime" not in enriched_info:
-                enriched_info["meetingTime"] = "7:30"  # Default meeting time
+            # Canonical meeting time for all meeting types
+            enriched_info["meetingTime"] = MEETING_TIME
+
+            if "cycle" not in enriched_info:
+                enriched_info["cycle"] = cycle_from_meeting_date(meeting_date_iso)
             
-            # Calculate next meeting date (for example, add 1 month)
-            # In a real implementation, this would be more sophisticated
-            if "nextMeetingDate" not in enriched_info:
-                # Simple example: use a fixed next meeting date
-                enriched_info["nextMeetingDate"] = "2025-09-04"
-            
-            # Set venue information
-            enriched_info["thisVenue"] = enriched_info["location"]
-            enriched_info["mextVenue"] = "Performing Arts Center (PAC)"  # Default next venue
+            # Calculate next meeting type and location from the current meeting date
+            meeting_date_obj = datetime.fromisoformat(meeting_date_iso).date()
+            next_meeting_type = next_meeting_type_for_date(meeting_date_obj)
+            next_meeting_location = meeting_location_for_type(next_meeting_type)
+
+            # Set venue information for templates
+            enriched_info["thisVenue"] = enriched_info.get("location")
+            enriched_info["nextMeetingLocation"] = next_meeting_location
+
+            enriched_info = AgendaContextBuilder.build(enriched_info)
             
             logging.info("Meeting information enriched successfully")
             

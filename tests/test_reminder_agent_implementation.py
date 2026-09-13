@@ -6,10 +6,10 @@ to ensure it meets all requirements from the issue description.
 """
 
 import sys
+import os
 
 # Add the project root directory to the Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), \'..\')))
-import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import logging
 import asyncio
 from pathlib import Path
@@ -48,7 +48,7 @@ async def test_reminder_workflow():
         "meetingType": "regular",
         "meetingTime": "7:30 PM",
         "location": "Conference Room A",
-        "email_recipients": ["georgemartinwright@gmail.com"]
+        "email_recipients": ["user4@example.com"]
     }
     
     mock_task = MockTask(test_context)

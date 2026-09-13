@@ -11,6 +11,8 @@ import re
 from pathlib import Path
 from crewai.tools import BaseTool
 
+from scribe.meeting.meeting_config import meeting_location_for_type, meeting_type_for_date
+
 
 class MeetingCalendarTool(BaseTool):
     """
@@ -100,18 +102,9 @@ class MeetingCalendarTool(BaseTool):
         month = date.month
         
         # Determine meeting type, body, and location based on month
-        if month == 12:
-            meeting_type = "association"
-            meeting_body = "Residents Association"
-            location = "Performing Arts Center (PAC)"
-        elif month in [3, 6, 9]:
-            meeting_type = "open"
-            meeting_body = "Residents Council"
-            location = "Performing Arts Center (PAC)"
-        else:  # months 1, 2, 4, 5, 7, 8, 10, 11
-            meeting_type = "regular"
-            meeting_body = "Residents Council"
-            location = "McAuley Conference Room (MCR)"
+        meeting_type = meeting_type_for_date(date)
+        meeting_body = "Residents Association" if meeting_type == "association" else "Residents Council"
+        location = meeting_location_for_type(meeting_type)
         
         # Note: submission_deadline calculation has been removed due to simplification
         

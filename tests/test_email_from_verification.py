@@ -11,7 +11,7 @@ import os
 import sys
 
 # Add the project root directory to the Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), \'..\')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import logging
 from pathlib import Path
 
@@ -35,7 +35,7 @@ def test_email_from_verification():
     
     try:
         # Set EMAIL_FROM to the value from the .env file
-        os.environ["EMAIL_FROM"] = "georgemartinwright@gmail.com"
+        os.environ["EMAIL_FROM"] = "user4@example.com"
         
         # Reload the module to reinitialize DEFAULT_SENDER
         import importlib
@@ -47,7 +47,7 @@ def test_email_from_verification():
         
         # Verify that DEFAULT_SENDER is correctly set
         logger.info(f"DEFAULT_SENDER value: {DEFAULT_SENDER}")
-        assert DEFAULT_SENDER == "georgemartinwright@gmail.com", f"Expected DEFAULT_SENDER to be 'georgemartinwright@gmail.com', got '{DEFAULT_SENDER}'"
+        assert DEFAULT_SENDER == "user4@example.com", f"Expected DEFAULT_SENDER to be 'user4@example.com', got '{DEFAULT_SENDER}'"
         
         # Create an instance of EmailService
         email_service = EmailService()

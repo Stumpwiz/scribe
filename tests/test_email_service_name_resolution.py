@@ -20,8 +20,8 @@ def test_email_validation():
     
     # Test 2: Validate another valid email address
     try:
-        result = email_service._validate_email("user.name+tag@domain.co.uk")
-        print(f"Test 2: Validated 'user.name+tag@domain.co.uk' as {result}")
+        result = email_service._validate_email("user10@example.com")
+        print(f"Test 2: Validated 'user10@example.com' as {result}")
         assert result == True, f"Expected True, got {result}"
     except Exception as e:
         print(f"Test 2 failed: {str(e)}")
@@ -49,7 +49,7 @@ def test_run_method():
     print("\nTesting _run method with email validation...")
     
     # Test 1: Send to valid email addresses
-    to = ["test@example.com", "user.name@domain.com"]
+    to = ["test@example.com", "user11@example.com"]
     result = email_service._run(action="send", to=to, subject="Test Subject", body="Test Body", dry_run=True)
     print(f"Test 1 result: {result}")
     

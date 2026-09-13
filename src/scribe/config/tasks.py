@@ -12,6 +12,7 @@ from typing import Dict, List, Any
 import yaml
 from dataclasses import dataclass
 import logging
+import os
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -93,7 +94,7 @@ async def monitor_and_ingest_email_reports(self, agent, task) -> Dict[str, Any]:
     classified_count = 0
 
     # Resolve assets/recipients directory
-    recipients_dir = (Path(__file__).parent.parent / "assets" / "recipients").resolve()
+    recipients_dir = Path(os.getenv("RECIPIENTS_DIR") or (Path(__file__).parent.parent / "assets" / "recipients")).expanduser().resolve()
 
     # Try to import the expected tools; if unavailable, create minimal stubs so
     # tests can patch/mock them without ImportError.

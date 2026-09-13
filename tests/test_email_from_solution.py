@@ -11,7 +11,7 @@ import os
 import sys
 
 # Add the project root directory to the Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), \'..\')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from pathlib import Path
 
 # Add the src directory to the Python path
@@ -29,10 +29,10 @@ def test_email_from_solution():
     
     try:
         # Test 1: With EMAIL_FROM set
-        print("\nTest 1: With EMAIL_FROM set to geo@loyola.edu")
+        print("\nTest 1: With EMAIL_FROM set to user2@example.com")
         
         # Set EMAIL_FROM to the required value
-        os.environ["EMAIL_FROM"] = "geo@loyola.edu"
+        os.environ["EMAIL_FROM"] = "user2@example.com"
         
         # Reload the module to reinitialize DEFAULT_SENDER
         import importlib

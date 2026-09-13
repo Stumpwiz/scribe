@@ -1,5 +1,6 @@
 archive_committee_reports:
   agent: ArchiveAgent
+  name: ArchiveAgentArchiveCommitteeReports
   description: 'Archive all committee reports and attachments from the council meeting
     to the appropriate sections of the council website.
 
@@ -13,6 +14,7 @@ archive_committee_reports:
     - file_tools
 create_meeting_backup:
   agent: ArchiveAgent
+  name: ArchiveAgentCreateBackupCopies
   description: 'Create backup copies of all documents related to the council meeting,
     including minutes, reports, transcriptions, and recordings.
 
@@ -25,6 +27,7 @@ create_meeting_backup:
     - file_tools
 distribute_draft_minutes:
   agent: MinutesAgent
+  name: MinutesAgentDistributeDraftMinutes
   description: 'Distribute the draft minutes for the council meeting to designated
     reviewers (council officers, executive director) for review and feedback.
 
@@ -38,6 +41,7 @@ distribute_draft_minutes:
     - file_tools
 echo_message:
   agent: MinutesAgent
+  name: MinutesAgentEchoPlaceholderMessage
   description: 'Echo a placeholder message about the council''s activities.
 
     '
@@ -47,20 +51,20 @@ echo_message:
   tools:
     - output_tool
 extract_email_attachments:
+  skip: true
   agent: IngestorAgent
-  description: 'Extract and save attachments from emails related to the meeting. Verify
-    file integrity and organize by committee, wing, and content type.
-
-    '
-  expected_output: 'Extracted attachments saved to appropriate directories with metadata
-    (sender, timestamp, file type, committee/wing name).
-
-    '
+  name: IngestorAgentExtractSaveAttachments
+  description: >
+    (V2+ placeholder) Attachment extraction is not part of IngestorAgent v1.
+    Kept here but disabled. Do not run.
+  expected_output: >
+    N/A (disabled)
   tools:
     - email_service
     - file_tools
 feedback_test:
   agent: FollowUpAgent
+  name: FollowUpAgentTestFeedbackTracking
   description: 'Test the feedback tracking capabilities with a simple review.
 
     '
@@ -71,6 +75,7 @@ feedback_test:
     - output_tool
 finalize_minutes:
   agent: MinutesAgent
+  name: MinutesAgentGenerateFinalApprovedMinutes
   description: 'Generate final approved minutes for the council meeting after all
     feedback has been incorporated and approved by the council president.
 
@@ -84,6 +89,7 @@ finalize_minutes:
     - file_tools
 follow_up_pending_reports:
   agent: ReminderAgent
+  name: ReminderAgentFollowUpPendingReports
   description: 'Follow up with committee chairs and wing reps who have not submitted
     their reports for the meeting.
 
@@ -98,6 +104,7 @@ follow_up_pending_reports:
     - calendar_integration
 format_reports_for_minutes:
   agent: FormatterAgent
+  name: FormatAgenda
   description: 'Format committee and wing reports and meeting transcripts for inclusion
     in the meeting minutes for the council/association meeting. Convert to appropriate
     format for LaTeX.
@@ -113,6 +120,7 @@ format_reports_for_minutes:
     - file_tools
 format_test:
   agent: FormatterAgent
+  name: FormatterAgentTestFormattingCapabilities
   description: 'Test the formatting capabilities with a simple text sample.
 
     '
@@ -123,6 +131,7 @@ format_test:
     - output_tool
 generate_draft_minutes:
   agent: MinutesAgent
+  name: MinutesAgentGenerateDraftMinutes
   description: 'Generate draft minutes for the council meeting using the formatted
     reports, transcriptions, and summaries.
 
@@ -138,6 +147,7 @@ generate_draft_minutes:
     - file_tools
 hello_world:
   agent: ReminderAgent
+  name: ReminderAgentSayHelloConfirmSystem
   description: 'Say hello and confirm the system is working.
 
     '
@@ -148,6 +158,7 @@ hello_world:
     - output_tool
 incorporate_feedback:
   agent: MinutesAgent
+  name: MinutesAgentIncorporateFeedbackCorrections
   description: 'Incorporate feedback and corrections from reviewers into the draft
     minutes for the council meeting.
 
@@ -161,6 +172,7 @@ incorporate_feedback:
     - file_tools
 ingest_test:
   agent: IngestorAgent
+  name: IngestorAgentTestIngestionCapabilities
   description: 'Test the ingestion capabilities with a simple message.
 
     '
@@ -169,20 +181,9 @@ ingest_test:
     '
   tools:
     - output_tool
-monitor_email_inbox:
-  agent: IngestorAgent
-  description: 'Monitor the council secretary''s email inbox for new messages related
-    to the upcoming meeting. Check at least 3 times daily.
-
-    '
-  expected_output: 'A log of all incoming messages classified by type (report submission,
-    agenda item, attendance confirmation, question, etc.) and urgency.
-
-    '
-  tools:
-    - email_service
 prepare_next_agenda:
   agent: MinutesAgent
+  name: MinutesAgentExtractUnfinishedBusiness
   description: 'Extract unfinished business and action items from the council meeting
     minutes to prepare the agenda template for the next meeting.
 
@@ -196,6 +197,7 @@ prepare_next_agenda:
     - latex_service
 request_committee_reports:
   agent: ReminderAgent
+  name: ReminderAgentRequestCommitteeReports
   description: 'Request committee reports from all committee chairs and wing reps
     for the upcoming meeting. Specify the required format.
 
@@ -209,6 +211,7 @@ request_committee_reports:
     - email_service
 schedule_meeting:
   agent: ReminderAgent
+  name: ReminderAgentScheduleCouncilMeeting
   description: 'Schedule a council meeting. Check calendar for conflicts and notify
     all council members and committee chairs.
 
@@ -223,12 +226,15 @@ schedule_meeting:
     - email_service
 send_meeting_notification:
   agent: ReminderAgent
-  description: 'Send a meeting reminder email for the given date, with all other information
-    inferred automatically.
+  name: ReminderAgentSendMeetingReminderEmail
+  description: 'Use the meeting_notification_tool to create and send a meeting reminder email.
+    You MUST pass ALL of the following input parameters to the tool: meeting_date, meeting_type,
+    old_business_items, and new_business_items. The tool will render the email from a template
+    using these parameters to generate the actual meeting details.
 
     '
-  expected_output: 'Email notifications sent to all participants with meeting details
-    and agenda template.
+  expected_output: 'Email notification created using the template with actual meeting date,
+    type, old business items, and new business items. Confirmation that the notification was saved.
 
     '
   input_variables:
@@ -243,6 +249,7 @@ send_meeting_notification:
     - meeting_notification_tool
 summarize_meeting_content:
   agent: FormatterAgent
+  name: FormatterAgentCreateConciseSummaries
   description: 'Create concise summaries of the meeting discussions, decisions, and
     action items from the council meeting transcription.
 
@@ -255,6 +262,7 @@ summarize_meeting_content:
     - file_tools
 test_archive:
   agent: ArchiveAgent
+  name: ArchiveAgentTestArchiveFunctionality
   description: 'Test the archive functionality with a placeholder document.
 
     '
@@ -264,20 +272,20 @@ test_archive:
   tools:
     - output_tool
 track_report_submissions:
+  skip: true
   agent: IngestorAgent
-  description: 'Track the receipt of committee and wing reports for the meeting. Compare
-    against the list of expected reports and identify missing submissions.
-
-    '
-  expected_output: 'A status report showing received reports, missing reports, and
-    submission timestamps.
-
-    '
+  name: IngestorAgentTrackReceiptReports
+  description: >
+    (V2+ placeholder) Missing-report tracking is not part of IngestorAgent v1.
+    Kept here but disabled. Do not run.
+  expected_output: >
+    N/A (disabled)
   tools:
     - file_tools
     - email_service
 track_review_feedback:
   agent: FollowUpAgent
+  name: FollowUpAgentTrackReceiptFeedback
   description: 'Track receipt of feedback on draft minutes for the council meeting.
     Follow up with reviewers who have not responded by the deadline.
 
@@ -292,6 +300,7 @@ track_review_feedback:
     - calendar_integration
 transcribe_meeting_recording:
   agent: FormatterAgent
+  name: FormatterAgentTranscribeAudioRecording
   description: 'Transcribe the audio recording of the council meeting. Identify speakers
     and key discussion points.
 
@@ -303,8 +312,18 @@ transcribe_meeting_recording:
   tools:
     - transcription_service
     - file_tools
+formatter_transcribe_audio:
+  agent: FormatterAgent
+  name: FormatterAgentTranscribeAudio
+  description: 'Transcribe M4A audio into a speaker-labeled text file using AssemblyAI'
+  expected_output: 'Path to transcript .txt file'
+  tools:
+    - transcribe_audio
+  args:
+    audio_path: 'C:\\Users\\Geo\\OneDrive\\MercyRidge\\Secretary\\Minutes\\09\\Rc250904.m4a'
 update_meeting_records:
   agent: ArchiveAgent
+  name: ArchiveAgentUpdateCouncilMeetingRecords
   description: 'Update the council''s meeting records database with information from
     the council meeting, including attendance, key decisions, and action items.
 
@@ -317,6 +336,7 @@ update_meeting_records:
     - file_tools
 upload_minutes_to_website:
   agent: ArchiveAgent
+  name: ArchiveAgentUploadApprovedMinutes
   description: 'Upload the approved minutes for the council meeting to the council
     website in the appropriate section.
 
@@ -328,11 +348,11 @@ upload_minutes_to_website:
   tools:
     - ftp_service
     - file_tools
-
 generate_meeting_agenda:
+  name: clerkGenerateLatexPdfAgenda
   description: Generate a LaTeX and PDF agenda for an upcoming meeting.
   expected_output: Agenda files generated and stored in the output/agendas directory.
-  agent: clerk
+  agent: FormatterAgent
   tools:
     - MeetingAgendaGeneratorTool
   input_variables:
@@ -340,11 +360,15 @@ generate_meeting_agenda:
     - location
     - agenda_type
     - log
-
-
-
-monitor_and_ingest_email_reports:
+ingest_unread_inbox_v1:
+  description: >
+    Manual run. Read UNREAD messages in Gmail INBOX. For each message:
+    1) classify into attendance / agenda-typo / agenda-omission / agenda-newbiz / unknown
+    2) apply label 'Scribe/Incoming' (add only; do not remove other labels)
+    3) append one JSON log record (append-only)
+    Non-destructive: do not reply, do not mark read, do not archive/move, do not download attachments.
+  expected_output: >
+    JSON log updated with one record per processed Gmail message, including:
+    message_id, thread_id, internal_date, from, subject, snippet, classification,
+    label_applied, and timestamp.
   agent: IngestorAgent
-  description: "Monitors the inbox, classifies relevant incoming reports, and organizes their content for downstream processing."
-  expected_output: "A structured JSON object containing a success flag, list of processed reports, and output folder paths."
-  async_execution: false

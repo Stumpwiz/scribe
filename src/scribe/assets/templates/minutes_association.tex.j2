@@ -1,0 +1,259 @@
+\documentclass[14pt,twoside,openany]{extarticle}
+\usepackage[export]{adjustbox} % for report image sizing
+\usepackage[english]{babel}    % For English hyphenation
+\usepackage{fancyhdr}          % For pagination
+\usepackage{fullpage}          % Reduced margins
+\usepackage{lastpage}          % For pagination
+\usepackage{url}               % Robust URL typesetting
+
+\pagestyle{fancy}
+\fancyhead{} % clear all header fields
+\fancyhead[RO,LE]{}{}
+\fancyfoot{} % clear all footer fields
+\fancyfoot[LE,RO]{\thepage}
+\fancyfoot[LO,RE]{\footerLine}
+\fancyfoot[CO,CE]{}
+\renewcommand{\headrulewidth}{0.0pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\newlength{\adjustedtextheight}
+\setlength{\adjustedtextheight}{\textheight}
+\addtolength{\adjustedtextheight}{-2.5cm}
+\setlength{\parindent}{0pt}  % No indentation
+\setlength{\parskip}{0.4em}  % Add space between paragraphs (adjust as needed)
+
+\raggedbottom % Prevents LaTeX from stretching the page
+
+\begin{document}
+\def\status{Draft} % either Draft or Final
+\input{meeting_dates.tex}
+\def\reportsDir{\detokenize{ {{- reportsDir -}} }} % Directory for report images
+\def\logoPath{\detokenize{ {{- logopath -}} }}
+
+% Report appendices use \reportbegin, repeated \reportpage calls, and \reportend.
+% Page names are generated from the formatter manifest when available.
+
+\newcommand{\ReportPath}[1]{\reportsDir/\detokenize{#1}}
+\newcommand{\SafeIncludeReport}[1]{
+    \IfFileExists{\ReportPath{#1}}{
+        \includegraphics[
+            max width=\textwidth,
+            max height=\adjustedtextheight,
+            keepaspectratio
+        ]{\ReportPath{#1}}
+    }{
+        \IfFileExists{\ReportPath{#1}.pdf}{
+            \includegraphics[
+                max width=\textwidth,
+                max height=\adjustedtextheight,
+                keepaspectratio
+            ]{\ReportPath{#1}.pdf}
+        }{
+            \IfFileExists{\ReportPath{#1}.png}{
+                \includegraphics[
+                    max width=\textwidth,
+                    max height=\adjustedtextheight,
+                    keepaspectratio
+                ]{\ReportPath{#1}.png}
+            }{
+                \IfFileExists{\ReportPath{#1}.jpg}{
+                    \includegraphics[
+                        max width=\textwidth,
+                        max height=\adjustedtextheight,
+                        keepaspectratio
+                    ]{\ReportPath{#1}.jpg}
+                }{
+                    \IfFileExists{\ReportPath{#1}.jpeg}{
+                        \includegraphics[
+                            max width=\textwidth,
+                            max height=\adjustedtextheight,
+                            keepaspectratio
+                        ]{\ReportPath{#1}.jpeg}
+                    }{
+                        \null
+                    }
+                }
+            }
+        }
+    }
+}
+
+\newif\ifreportfirstpage
+\newcommand{\reportbegin}[2]{
+    \clearpage
+    \section{#1}
+    \label{app:#2}
+    \reportfirstpagetrue
+}
+
+\newcommand{\reportpage}[1]{
+    \ifreportfirstpage
+        \reportfirstpagefalse
+    \else
+        \clearpage
+    \fi
+    {
+        \centering
+        \SafeIncludeReport{#1}
+    }
+    \raggedright
+}
+
+\newcommand{\reportend}{}
+
+\NewDocumentCommand{\report}{m m m o o o o o o}{
+    \reportbegin{#1}{#2}
+    \reportpage{#3}
+    \IfValueT{#4}{\reportpage{#4}}
+    \IfValueT{#5}{\reportpage{#5}}
+    \IfValueT{#6}{\reportpage{#6}}
+    \IfValueT{#7}{\reportpage{#7}}
+    \IfValueT{#8}{\reportpage{#8}}
+    \IfValueT{#9}{\reportpage{#9}}
+    \reportend
+}
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\def\version{\status,~\today}
+\def\footerLine{\small Residents Association Minutes, \meetingDate~(\version)}
+
+\begin{center}
+	\IfFileExists{\logoPath}{\includegraphics{\logoPath}}{\null}\par\vspace{0.6\baselineskip}
+	\large Minutes \\
+	\large \meetingDate \\ Performing Arts Center
+\end{center}
+\pagenumbering{roman}
+{\normalsize \tableofcontents}
+\newpage
+\setcounter{page}{1}
+\pagenumbering{arabic}
+\pagestyle{fancy}
+\fancyfoot[LE,RO]{\thepage\ of \pageref{LastPage}}
+
+\section{Adoption of Agenda}
+President Luke Yackley opened the meeting with a motion to adopt the agenda. The motion passed unanimously.
+
+\section{Introduction of New Staff}
+The president departed from the agenda, calling David Denton to the podium to introduce three new employees. David introduced Branden Zumbrun, Director of Facilities, Kenya Rock, Environmental Service Supervisor, and Doug Gardner, IT Manager.
+
+\section{Tellers’ Report and Chair’s Declaration of Election Results}
+Tom Scheurich, chair of the Nominating Committee, conducted the process of electing wing representatives.  The committee's slate was elected unanimously:
+\begin{itemize}
+	\item Wing A, Liz Masterson;
+	\item Wing B, Walt Brooksbank;
+	\item Wing C, Weezie Brown;
+	\item Wing D, Linda Compton;
+	\item Wing E, Barbara Siciliano;
+	\item Wing F, Spence Lieske;
+	\item Wing G, Steve Lakner.
+\end{itemize}
+
+\section{Reports of Officers}
+\subsection*{President}
+{% if officer_report_inputs.president is defined %}
+\input{"{{ officer_report_inputs.president }}"}
+
+{% endif %}
+President Luke Yackley's written report appears in Appendix \ref{app:president}, page \pageref{app:president}.  He summarized the written reports of some of the other officers.
+
+\subsection*{Vice President}
+{% if officer_report_inputs.vicePresident is defined %}
+\input{"{{ officer_report_inputs.vicePresident }}"}
+
+{% endif %}
+Vice President Rich Compton's written report appears in Appendix \ref{app:vicePresident}, page \pageref{app:vicePresident}. He summarized the reports of the wing representatives.  Individual wing reports
+also appear as appendixes for the record.
+
+\subsection*{Treasurer}
+{% if officer_report_inputs.treasurer is defined %}
+\input{"{{ officer_report_inputs.treasurer }}"}
+
+{% endif %}
+Treasurer Charles Blair's written report appears in Appendix \ref{app:treasurer}, page \pageref{app:treasurer}. He did not report orally.
+
+\subsection*{Secretary}
+{% if officer_report_inputs.secretary is defined %}
+\input{"{{ officer_report_inputs.secretary }}"}
+
+{% endif %}
+% Secretary George Wright's report appears in Appendix \ref{app:secretary}, page \pageref{app:secretary}.
+Secretary George Wright had no report.
+
+\subsection*{Administrative Assistant}
+{% if officer_report_inputs.administrativeAssistant is defined %}
+\input{"{{ officer_report_inputs.administrativeAssistant }}"}
+
+{% endif %}
+Administrative Assistant Lois Lashar's written report appears in Appendix \ref{app:assistant}, page \pageref{app:assistant}. She did not report orally.
+
+\section{Report of the Council}
+President Luke Yackley presented the ``Motion to Amend the Bylaws---Consolidation of Environment/Landscape and Sustainability Committees.'' The motion appears in Appendix \ref{app:motion}, page \pageref{app:motion}. It was ratified unanimously.
+
+\section{Committee Reports}
+
+Building Maintenance Committee chair Tom Scheurich's report appears in Appendix \ref{app:building}, page \pageref{app:building}.
+
+Dining Committee chair Gerry Buckley's report appears in Appendix \ref{app:dining}, page \pageref{app:dining}.
+
+Employee Appreciation Committee chair Jackie Troutman's report appears in Appendix \ref{app:employee}, page \pageref{app:employee}.
+
+Environment/Landscape Committee chair Ed Lehwald's report appears in Appendix \ref{app:environment}, page \pageref{app:environment}.
+
+Finance Committee chair Nancy Burke's report appears in Appendix \ref{app:finance}, page \pageref{app:finance}.
+
+Library Committee chair Evelyn Sedlack's report appears in Appendix \ref{app:library}, page \pageref{app:library}.
+
+Scholarship Committee chair Claire Ross\'{e}'s report appears in Appendix \ref{app:scholarship}, page \pageref{app:scholarship}.
+
+Special Events and Trips Committee chair Veronica Cryan's report appears in Appendix \ref{app:events}, page \pageref{app:events}.
+
+\section{Executive Director's Report}
+Executive Director David Denton's report appears in Appendix \ref{app:director}, page \pageref{app:director}.
+
+\section{New Business}
+\subsection{Awards}
+President Luke Yackley introduced the Extraordinary Service Award and the Legacy Award.
+\begin{enumerate}
+	\item Rich Compton took the floor to present the Extraordinary Service Award to Bob Stern.
+	\item Claire Ross\'{e} took the floor to present the Legacy Award to Jerry Kahan.
+\end{enumerate}
+
+\subsection{Comments/Questions from the Floor}
+One question from the floor was raised.
+\begin{description}
+	\item[Priorities.] A resident raised concern about the prioritization of the renovation plan over urgent maintenance issues.  The response emphasized the importance of ongoing maintenance and renovations and encouraged residents to address specific concerns through the Building Maintenance Committee and other available avenues.
+\end{description}
+
+\section{Adjournment}
+Chair Luke Yackley adjourned the meeting at 3:30 p.m.
+
+\newpage
+\appendix
+{% macro report_from_manifest(title, label, office, fallback_pages) -%}
+\reportbegin{ {{- title -}} }{ {{- label -}} }
+{% for image_name in report_pages(office, fallback_pages) %}
+\reportpage{ {{- image_name -}} }
+{% endfor %}
+\reportend
+{%- endmacro %}
+{{ report_from_manifest("President's Report", "president", "president", ["president.png"]) }}
+{{ report_from_manifest("Vice President's Report", "vicePresident", "vicePresident", ["vicePresident-1.png", "vicePresident-2.png"]) }}
+{{ report_from_manifest("Treasurer's Report", "treasurer", "treasurer", ["treasurer.png"]) }}
+{{ report_from_manifest("Secretary's Report", "secretary", "secretary", ["secretary.png"]) }}
+{{ report_from_manifest("Administrative Assistant's Report", "assistant", "administrativeAssistant", ["adminAssistant.png"]) }}
+{{ report_from_manifest("Motion to Amend Bylaws", "motion", "motion", ["motion-1.png", "motion-2.png"]) }}
+{{ report_from_manifest("Building Maintenance Report", "building", "buildingMaintenance", ["buildingMaintenance-1.png", "buildingMaintenance-2.png"]) }}
+{{ report_from_manifest("Dining Report", "dining", "dining", ["dining"]) }}
+{{ report_from_manifest("Employee Appreciation Report", "employee", "employeeAppreciation", ["employeeAppreciation.png"]) }}
+{{ report_from_manifest("Environment/Landscape Report", "environment", "environmentLandscape", ["environment-1.png", "environment-2.png"]) }}
+{{ report_from_manifest("Finance Report", "finance", "finance", ["finance.png"]) }}
+{{ report_from_manifest("Library Report", "library", "library", ["library.png"]) }}
+{{ report_from_manifest("Scholarship Report", "scholarship", "scholarship", ["scholarship.png"]) }}
+{{ report_from_manifest("Special Events \\& Trips Report", "events", "specialEventsAndTrips", ["events.png"]) }}
+{{ report_from_manifest("Executive Director's Report", "director", "director", ["director-1.png", "director-2.png", "director-3.png", "director-4.png"]) }}
+{{ report_from_manifest("A Wing Report", "wingA", "wingA", ["wingA.png"]) }}
+{{ report_from_manifest("D Wing Report", "wingD", "wingD", ["wingD.png"]) }}
+{{ report_from_manifest("E Wing Report", "wingE", "wingE", ["wingE.png"]) }}
+{{ report_from_manifest("F Wing Report", "wingF", "wingF", ["wingF.png"]) }}
+{{ report_from_manifest("G Wing Report", "wingG", "wingG", ["wingG.png"]) }}
+
+
+\end{document}

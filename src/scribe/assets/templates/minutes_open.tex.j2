@@ -1,0 +1,266 @@
+\documentclass[14pt,twoside,openany]{extarticle}
+\usepackage[export]{adjustbox} % for report image sizing
+\usepackage[english]{babel}    % For English hyphenation
+\usepackage{fancyhdr}          % For pagination
+\usepackage{fullpage}          % Reduced margins
+\usepackage{lastpage}          % For pagination
+\usepackage{tikz}              % For attendance check marks
+\usepackage{url}               % Robust URL typesetting
+
+\pagestyle{fancy}
+\fancyhead{} % clear all header fields
+\fancyhead[RO,LE]{}{}
+\fancyfoot{} % clear all footer fields
+\fancyfoot[LE,RO]{\thepage}
+\fancyfoot[LO,RE]{\footerLine}
+\fancyfoot[CO,CE]{}
+\renewcommand{\headrulewidth}{0.0pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\newlength{\adjustedtextheight}
+\setlength{\adjustedtextheight}{\textheight}
+\addtolength{\adjustedtextheight}{-2.5cm}
+\setlength{\parindent}{0pt}  % No indentation
+\setlength{\parskip}{0.4em}  % Add space between paragraphs (adjust as needed)
+
+\raggedbottom % Prevents LaTeX from stretching the page
+
+\begin{document}
+%%
+%% CHECK THE FOLLOWING FIVE EACH TIME YOU RUN THIS
+%%
+\def\status{Draft} % either Draft or Final
+\input{meeting_dates.tex}
+\def\reportsDir{\detokenize{ {{- reportsDir -}} }} % Directory for report images
+\def\logoPath{\detokenize{ {{- logopath -}} }}
+%%
+%% PERMANENT DOCUMENT-SPECIFIC DEFINES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+% Report appendices use \reportbegin, repeated \reportpage calls, and \reportend.
+% Page names are generated from the formatter manifest when available.
+
+\newcommand{\ReportPath}[1]{\reportsDir/\detokenize{#1}}
+\newcommand{\SafeIncludeReport}[1]{
+    \IfFileExists{\ReportPath{#1}}{
+        \includegraphics[
+            max width=\textwidth,
+            max height=\adjustedtextheight,
+            keepaspectratio
+        ]{\ReportPath{#1}}
+    }{
+        \IfFileExists{\ReportPath{#1}.pdf}{
+            \includegraphics[
+                max width=\textwidth,
+                max height=\adjustedtextheight,
+                keepaspectratio
+            ]{\ReportPath{#1}.pdf}
+        }{
+            \IfFileExists{\ReportPath{#1}.png}{
+                \includegraphics[
+                    max width=\textwidth,
+                    max height=\adjustedtextheight,
+                    keepaspectratio
+                ]{\ReportPath{#1}.png}
+            }{
+                \IfFileExists{\ReportPath{#1}.jpg}{
+                    \includegraphics[
+                        max width=\textwidth,
+                        max height=\adjustedtextheight,
+                        keepaspectratio
+                    ]{\ReportPath{#1}.jpg}
+                }{
+                    \IfFileExists{\ReportPath{#1}.jpeg}{
+                        \includegraphics[
+                            max width=\textwidth,
+                            max height=\adjustedtextheight,
+                            keepaspectratio
+                        ]{\ReportPath{#1}.jpeg}
+                    }{
+                        \null
+                    }
+                }
+            }
+        }
+    }
+}
+
+\newif\ifreportfirstpage
+\newcommand{\reportbegin}[2]{
+    \clearpage
+    \section{#1}
+    \label{app:#2}
+    \reportfirstpagetrue
+}
+
+\newcommand{\reportpage}[1]{
+    \ifreportfirstpage
+        \reportfirstpagefalse
+    \else
+        \clearpage
+    \fi
+    {
+        \centering
+        \SafeIncludeReport{#1}
+    }
+    \raggedright
+}
+
+\newcommand{\reportend}{}
+
+\NewDocumentCommand{\report}{m m m o o o o o o}{
+    \reportbegin{#1}{#2}
+    \reportpage{#3}
+    \IfValueT{#4}{\reportpage{#4}}
+    \IfValueT{#5}{\reportpage{#5}}
+    \IfValueT{#6}{\reportpage{#6}}
+    \IfValueT{#7}{\reportpage{#7}}
+    \IfValueT{#8}{\reportpage{#8}}
+    \IfValueT{#9}{\reportpage{#9}}
+    \reportend
+}
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\def\version{\status,~\today}
+\def\footerLine{\small Residents Council Minutes, \meetingDate~(\version)}
+\def\checkmark{\tikz\fill[scale=0.4](0,.35) -- (.25,0) -- (1,.7) -- (.25,.15) -- cycle;}
+%%
+%% END OF DEFINES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+
+\begin{center}
+\IfFileExists{\logoPath}{\includegraphics{\logoPath}}{\null}\par\vspace{0.6\baselineskip}
+\large Minutes \\
+\large \meetingDate \\ Performing Arts Center
+\end{center}
+\pagenumbering{roman}
+{\normalsize \tableofcontents}
+\newpage
+\setcounter{page}{1}
+\pagenumbering{arabic}
+\pagestyle{fancy}
+\fancyfoot[LE,RO]{\thepage\ of \pageref{LastPage}}
+
+\section{Call to Order}
+An open meeting of the Residents Residents Council was held on \meetingDate~in the Performing Arts Center.  It began at 2:00 p.m.~and was chaired by Luke Yackley with George Wright as secretary.
+
+\section{Attendance}
+\label{attendanceTable}
+\begin{center}
+\begin{tabular}{lcc}
+\vspace{.1in}
+{\em Voting Members}     & {\em Present} & {\em Absent} \\
+Barb Siciliano      & \checkmark &  \\
+Brenda Dandy        & \checkmark &  \\
+Charles Blair       & \checkmark &  \\
+George Wright       & \checkmark &  \\
+Linda Compton       & \checkmark &  \\
+Liz Masterson       & \checkmark &  \\
+Lois Lashar         & \checkmark &  \\
+Luke Yackley        & \checkmark &  \\
+Richard Compton     & \checkmark &  \\
+Spence Lieske       & \checkmark &  \\
+Walt Brooksbank     & \checkmark &  \\
+Weezie Brown        & \checkmark &  \\[.25in]
+\end{tabular}
+
+\par
+\begin{tabular}{lcc}
+\vspace{.1in}
+{\em Non-Voting Attendees} & {\em Present} & {\em Absent} \\
+David Denton, Executive Director       & \checkmark &  \\
+Tom Scheurich, Building/Maintenance    & \checkmark &  \\
+Gerry Buckley, Dining                  & \checkmark &  \\
+Jackie Troutman, Employee Appreciation & \checkmark &  \\
+Ed Lehwald, Environment/Landscape      & \checkmark &  \\
+Nancy Burke, Finance                   & \checkmark &  \\
+Marie Scheurich, Library               & \checkmark &  \\
+Claire Ross\'{e}, Scholarship          & \checkmark &  \\
+Veronica Cryan, Special Event \& Trips & \checkmark &  \\
+\end{tabular}
+
+\end{center}
+\normalsize
+
+\section{Approval of Minutes}
+Minutes of \lastMeetingDate~were approved as submitted.
+
+\section{Officers' Reports}
+\subsection*{President}
+{% if officer_report_inputs.president is defined %}
+\input{"{{ officer_report_inputs.president }}"}
+
+{% endif %}
+President Luke Yackley's report appears in Appendix \ref{app:president}, page \pageref{app:president}.
+
+\subsection*{Vice President}
+{% if officer_report_inputs.vicePresident is defined %}
+\input{"{{ officer_report_inputs.vicePresident }}"}
+
+{% endif %}
+Vice President Rich Compton's report appears in Appendix \ref{app:vicePresident}, page \pageref{app:vicePresident}.
+
+\subsection*{Treasurer}
+{% if officer_report_inputs.treasurer is defined %}
+\input{"{{ officer_report_inputs.treasurer }}"}
+
+{% endif %}
+Treasurer Charles Blair's report appears in Appendix \ref{app:treasurer}, page \pageref{app:treasurer}.
+
+\subsection*{Secretary}
+{% if officer_report_inputs.secretary is defined %}
+\input{"{{ officer_report_inputs.secretary }}"}
+
+{% endif %}
+Secretary George Wright's report appears in Appendix \ref{app:secretary}, page \pageref{app:secretary}.
+
+\subsection*{Administrative Assistant}
+{% if officer_report_inputs.administrativeAssistant is defined %}
+\input{"{{ officer_report_inputs.administrativeAssistant }}"}
+
+{% endif %}
+Administrative Assistant Lois Lashar's report appears in Appendix \ref{app:administrativeAssistant}, page~\pageref{app:administrativeAssistant}.
+
+\section{Wing Reports}
+Since Rich Compton presents a summary of wing reports, individual wing reps don't deliver oral reports.  They still submit
+written reports for the record.  These reports appear in Appendices \ref{app:wingA}--\ref{app:wingG}, pages
+\pageref{app:wingA}--\pageref{app:wingG}.
+
+\section{Committee Reports}
+
+Building Maintenance Committee chair Tom Scheurich's report appears in Appendix \ref{app:buildingMaintenance}, page \pageref{app:buildingMaintenance}.
+
+Dining Committee chair Gerry Buckley's report appears in Appendix \ref{app:dining}, page \pageref{app:dining}.
+
+Employee Appreciation Committee chair Jackie Troutman's report appears in Appendix \ref{app:employee}, page \pageref{app:employee}.
+
+Environment/Landscape Committee chair Ed Lehwald's report appears in Appendix \ref{app:environmentLandscape}, page \pageref{app:environmentLandscape}.
+
+Finance Committee chair Nancy Burke's report appears in Appendix \ref{app:finance}, page \pageref{app:finance}.
+
+Library Committee chair Marie Scheurich's report appears in Appendix \ref{app:library}, page \pageref{app:library}.
+
+Scholarship Committee chair Claire Ross\'{e}'s report appears in Appendix \ref{app:scholarship}, page \pageref{app:scholarship}.
+
+Special Events and Trips Committee chair Veronica Cryan's report appears in Appendix \ref{app:specialEventsAndTrips}, page \pageref{app:specialEventsAndTrips}.
+
+\section{Executive Director's Report}
+Executive Director David Denton's report appears in Appendix \ref{app:director}, page \pageref{app:director}.
+
+
+\section{Unfinished Business}
+There was no unfinished business.
+
+\section{New Business}
+There was no new business.
+
+\section{Adjournment}
+Chair Luke Yackley adjourned the meeting at 3:04 p.m.
+
+\clearpage
+\appendix
+{% for report in appendix_reports %}
+\reportbegin{ {{- report.title -}} }{ {{- report.label -}} }
+{% for image_name in report.png_files %}
+\reportpage{ {{- image_name -}} }
+{% endfor %}
+\reportend
+{% endfor %}
+\end{document}

@@ -7,6 +7,7 @@ information based on meeting type.
 
 from typing import List, Dict, Any, Optional, ClassVar, Union
 import json
+import os
 from pathlib import Path
 from crewai.tools import BaseTool
 
@@ -58,13 +59,16 @@ class RecipientLoaderTool(BaseTool):
         
         try:
             # Load council members for all meeting types
-            council_members = self._load_recipients_from_file(self.council_members_file)
+            private_dir = os.getenv("RECIPIENTS_DIR")
+            council_path = str(Path(private_dir).expanduser() / "council_members.json") if private_dir else self.council_members_file
+            council_members = self._load_recipients_from_file(council_path)
             log_messages.append(f"Loaded {len(council_members)} council members")
             result["recipients"].extend(council_members)
             
             # Additionally load committee chairs for "open" or "association" meeting types
             if meetingType in ["open", "association"]:
-                committee_chairs = self._load_recipients_from_file(self.committee_chairs_file)
+                chairs_path = str(Path(private_dir).expanduser() / "committee_chairs.json") if private_dir else self.committee_chairs_file
+                committee_chairs = self._load_recipients_from_file(chairs_path)
                 log_messages.append(f"Loaded {len(committee_chairs)} committee chairs")
                 result["recipients"].extend(committee_chairs)
             
@@ -100,6 +104,8 @@ class RecipientLoaderTool(BaseTool):
         # Validate each recipient
         validated_recipients = []
         for recipient in recipients:
+            if isinstance(recipient, str):
+                recipient = {"name": recipient, "email": recipient, "role": "recipient"}
             self._validate_recipient(recipient)
             validated_recipients.append(recipient)
         

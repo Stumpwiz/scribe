@@ -34,6 +34,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Tuple
 import json
+import os
 import logging
 import os
 import re
@@ -125,8 +126,9 @@ class EmailClassifierTool(BaseTool):
 
     def _load_recipients(self, recipients_dir: Optional[str]) -> Tuple[set, set]:
         try:
-            if recipients_dir:
-                base = Path(recipients_dir)
+            configured_dir = recipients_dir or os.getenv("RECIPIENTS_DIR")
+            if configured_dir:
+                base = Path(configured_dir).expanduser()
             else:
                 # Default to project assets path relative to this file
                 base = Path(__file__).resolve().parent.parent / "assets" / "recipients"
@@ -195,7 +197,7 @@ class EmailClassifierTool(BaseTool):
         subj = subject.lower()
         parts = []
         if _email_in_set(s, cm):
-            parts.append("Sender matched council_member.json")
+            parts.append("Sender matched council_members.json")
         if _email_in_set(s, cc):
             parts.append("Sender matched committee_chairs.json")
         for kw in KEYWORDS:

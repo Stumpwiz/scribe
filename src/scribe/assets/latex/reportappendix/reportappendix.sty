@@ -1,0 +1,60 @@
+\ProvidesPackage{reportappendix}[2025/09/17 v1.0 Report appendix macro]
+\RequirePackage{xparse}   % for \NewDocumentCommand
+\RequirePackage{graphicx} % for \includegraphics
+
+% User must define \reportsDir in the preamble, e.g.:
+% \newcommand{\reportsDir}{./images}
+
+\NewDocumentCommand{\report}{m m m o o o o o o}{%
+  \clearpage  % Ensures each appendix starts on a new page
+  \section{#1}%
+  \label{app:#2}%
+  {%
+    \centering
+    \includegraphics[width=\textwidth, keepaspectratio]{\reportsDir/#3}%
+  }%
+  \raggedright%
+  %
+  \IfValueT{#4}{%
+    \clearpage
+    { \centering
+      \includegraphics[width=\textwidth, keepaspectratio]{\reportsDir/#4}%
+    }%
+    \raggedright
+  }%
+  \IfValueT{#5}{%
+    \clearpage
+    { \centering
+      \includegraphics[width=\textwidth, keepaspectratio]{\reportsDir/#5}%
+    }%
+    \raggedright
+  }%
+  \IfValueT{#6}{%
+    \clearpage
+    { \centering
+      \includegraphics[width=\textwidth, keepaspectratio]{\reportsDir/#6}%
+    }%
+    \raggedright
+  }%
+  \IfValueT{#7}{%
+    \clearpage
+    { \centering
+      \includegraphics[width=\textwidth, keepaspectratio]{\reportsDir/#7}%
+    }%
+    \raggedright
+  }%
+  \IfValueT{#8}{%
+    \clearpage
+    { \centering
+      \includegraphics[width=\textwidth, keepaspectratio]{\reportsDir/#8}%
+    }%
+    \raggedright
+  }%
+  \IfValueT{#9}{%
+    \clearpage
+    { \centering
+      \includegraphics[width=\textwidth, keepaspectratio]{\reportsDir/#9}%
+    }%
+    \raggedright
+  }%
+}

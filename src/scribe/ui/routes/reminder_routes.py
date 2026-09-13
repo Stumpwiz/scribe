@@ -4,6 +4,7 @@ import os
 import logging
 from scribe.utils import get_next_meeting_date
 from scribe.tools.meeting_notification_tool import MeetingNotificationTool, get_meeting_type_from_date
+from scribe.tools.meeting_agenda_generator_tool import MeetingAgendaGeneratorTool
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -14,6 +15,7 @@ reminder_bp = Blueprint('reminder', __name__, template_folder='../templates')
 @reminder_bp.route('/', methods=['GET', 'POST'])
 def reminder():
     from datetime import date
+    default_dry_run = os.getenv("DRY_RUN", "true").strip().lower() in ("1", "true", "yes", "y", "on")
 
     # Get the next meeting date
     next_meeting_date = get_next_meeting_date()
@@ -34,7 +36,9 @@ def reminder():
         "new_business": "",
         "success": False,
         "error": None,
-        "default_meeting_type": default_meeting_type
+        "default_meeting_type": default_meeting_type,
+        "dry_run_checked": default_dry_run,
+        "dry_run_result": False,
     }
 
     if request.method == 'POST':
@@ -42,6 +46,7 @@ def reminder():
             meeting_date_str = request.form.get("meeting_date")
             old_business = request.form.get("old_business", "").strip()
             new_business = request.form.get("new_business", "").strip()
+            dry_run = bool(request.form.get("dry_run"))
 
             # Validate date format
             try:
@@ -75,77 +80,128 @@ def reminder():
                 
             # Get recipients for the meeting
             notification_tool = MeetingNotificationTool()
-            recipients = notification_tool.get_recipients(meeting_type)
+            recipients = notification_tool.get_recipients(meeting_type, meeting_date=str(meeting_date))
             
             # Log recipient information
             logger.info(f"Recipients: count={len(recipients)}")
             
             # Note: We no longer need to check if recipients list is empty
-            # as get_recipients() now has a fallback to geo@loyola.edu
+            # as get_recipients() now has a safe fallback to DEFAULT_FALLBACK_EMAIL (or test@example.com)
                 
-            # Import crew here to avoid circular import issues
-            # (crew imports email_service which transitively depends on reminder_routes)
-            from scribe.crew import crew
-            
-            # Construct inputs dictionary as specified
-            # Note: submission_deadline and review_deadline fields have been removed due to simplification
-            inputs = {
-                "meeting_date": str(meeting_date),
-                "meeting_type": meeting_type,
-                "old_business_items": old_business.split("\n") if old_business else [],
-                "new_business_items": new_business.split("\n") if new_business else [],
-                "email_recipients": recipients,  # Should be a list of valid email strings
+            # For simple tasks like sending notifications, call the tool directly
+            # rather than using CrewAI agents (which are unreliable at following instructions)
+
+            # Parse business items
+            old_business_items = old_business.split("\n") if old_business else []
+            new_business_items = new_business.split("\n") if new_business else []
+
+            # Log the inputs
+            logger.info(f"Sending meeting notification:")
+            logger.info(f"  Meeting date: {meeting_date}")
+            logger.info(f"  Meeting type: {meeting_type}")
+            logger.info(f"  Old business items: {old_business_items}")
+            logger.info(f"  New business items: {new_business_items}")
+            logger.info(f"  Recipients: {len(recipients)}")
+
+            # Generate agenda PDF
+            logger.info("Generating agenda PDF...")
+            agenda_tool = MeetingAgendaGeneratorTool()
+
+            # Calculate next meeting date (first Thursday of next month)
+            next_month = meeting_date.month % 12 + 1
+            next_year = meeting_date.year if next_month > meeting_date.month else meeting_date.year + 1
+            from calendar import monthrange
+            # Find first Thursday of next month
+            first_day_of_month = datetime(next_year, next_month, 1).date()
+            days_until_thursday = (3 - first_day_of_month.weekday()) % 7  # 3 = Thursday
+            next_meeting = first_day_of_month + timedelta(days=days_until_thursday)
+
+            # Determine venues
+            if meeting_type == "open":
+                this_venue = "Performing Arts Center (PAC)"
+            else:
+                this_venue = "McAuley Conference Room (MCR)"
+
+            # Determine next meeting type and venue
+            next_meeting_type = get_meeting_type_from_date(next_meeting)
+            if next_meeting_type == "open":
+                next_venue = "Performing Arts Center (PAC)"
+            else:
+                next_venue = "McAuley Conference Room (MCR)"
+
+            meeting_info = {
+                "date": str(meeting_date),  # ISO format for MeetingCalendarTool
+                "meetingDate": meeting_date.strftime("%Y-%m-%d"),
+                "cycle": meeting_date.strftime("%Y-%m"),
+                "meetingTime": "2:00 PM",
+                "nextMeetingDate": next_meeting.strftime("%B %d, %Y"),
+                "thisVenue": this_venue,
+                "mextVenue": next_venue,  # Keep the typo to match template
+                "meetingType": meeting_type,
+                "oldBusinessItems": old_business_items,
+                "newBusinessItems": new_business_items
             }
-            
-            # Create the kickoff context with agent, task, and inputs
-            kickoff_context = {
-                "agent": "ReminderAgent",
-                "task": "send_meeting_notification",
-                "inputs": inputs
-            }
-            
-            # Log the inputs dictionary keys as required
-            logger.info(f"Inputs dictionary keys: {list(kickoff_context['inputs'].keys())}")
-            
-            # Log ReminderAgent invocation details with full context
-            logger.info(f"Kicking off ReminderAgent with context: {kickoff_context}")
-            
-            # Add more detailed debug logging
-            logger.debug(f"Agent: {kickoff_context['agent']}")
-            logger.debug(f"Task: {kickoff_context['task']}")
-            logger.debug(f"Meeting date: {kickoff_context['inputs']['meeting_date']}")
-            logger.debug(f"Meeting type: {kickoff_context['inputs']['meeting_type']}")
-            logger.debug(f"Old business items: {kickoff_context['inputs']['old_business_items']}")
-            logger.debug(f"New business items: {kickoff_context['inputs']['new_business_items']}")
-            logger.debug(f"Email recipients: {kickoff_context['inputs']['email_recipients']}")
-            
-            results = crew.kickoff({
-                "send_meeting_notification": kickoff_context["inputs"]
-            })
-            
+
+            agenda_result = agenda_tool._run(meeting_info=meeting_info)
+
+            if agenda_result.get("success"):
+                logger.info(f"Agenda PDF generated successfully: {agenda_result.get('pdfPath')}")
+            else:
+                logger.warning(f"Agenda PDF generation failed: {agenda_result.get('log', 'Unknown error')}")
+                # Continue anyway - we'll send without attachment
+
+            # Call MeetingNotificationTool directly with the form data
+            result = notification_tool._run(
+                meeting_date=str(meeting_date),
+                meeting_type=meeting_type,
+                old_business_items=old_business_items,
+                new_business_items=new_business_items,
+                agenda_result=agenda_result,
+                recipients=recipients,  # Pass the recipients list
+                filename_hint=f"{meeting_type}_meeting_{meeting_date}",
+                dry_run=dry_run,
+            )
+
+            logger.info(f"Meeting notification sent: {result}")
+            results = result if isinstance(result, dict) else {"success": True, "message": result}
+
             # Log results including file paths if available
             if results and isinstance(results, dict):
                 # Check for LaTeX file path
                 latex_path = results.get('latex_path')
                 if latex_path:
                     logger.info(f"LaTeX file generated: path={latex_path}")
-                
+
                 # Check for PDF file path
                 pdf_path = results.get('pdf_path')
                 if pdf_path:
                     logger.info(f"Agenda PDF generated: path={pdf_path}")
-                
+
                 # Log any other relevant output
                 if 'success' in results:
                     logger.info(f"ReminderAgent task completed: success={results['success']}")
 
-            context.update({
-                "success": True,
-                "old_business": old_business,
-                "new_business": new_business,
-                "meeting_type": meeting_type,
-                "meeting_date": meeting_date_str  # Preserve the selected date
-            })
+            # Use flash message and redirect to clear form
+            if results.get("status") == "dry_run":
+                context.update({
+                    "success": True,
+                    "dry_run_checked": True,
+                    "dry_run_result": True,
+                    "recipient_count": results.get("recipient_count", 0),
+                    "attachment_path": results.get("attachment_path", ""),
+                    "draft_path": results.get("draft_path", ""),
+                    "old_business": old_business,
+                    "new_business": new_business,
+                    "meeting_date": meeting_date_str,
+                })
+                return render_template("reminder.html", **context)
+
+            message_id = results.get("message_id", "")
+            if message_id:
+                flash(f"Reminder sent successfully. Message ID: {message_id}", "success")
+            else:
+                flash("The meeting reminder has been sent successfully.", "success")
+            return redirect(url_for('reminder.reminder'))
         except Exception as e:
             import traceback
             traceback.print_exc()
@@ -155,7 +211,9 @@ def reminder():
                 "error": str(e),
                 "old_business": old_business if 'old_business' in locals() else "",
                 "new_business": new_business if 'new_business' in locals() else "",
-                "meeting_date": meeting_date_str if 'meeting_date_str' in locals() else context["meeting_date"]
+                "meeting_date": meeting_date_str if 'meeting_date_str' in locals() else context["meeting_date"],
+                "dry_run_checked": dry_run if 'dry_run' in locals() else default_dry_run,
+                "dry_run_result": False,
             })
 
     return render_template("reminder.html", **context)

@@ -98,13 +98,15 @@ class EmailWriterTool(BaseTool):
             
             # Prepare template context
             # Note: submissionDeadline and reportInstructions have been removed due to simplification
+            old_business_items = old_business.splitlines() if old_business else []
+            new_business_items = new_business.splitlines() if new_business else []
             template_context = {
                 "meetingType": meeting_type,
                 "meetingDate": meetingDate,
                 "meetingTime": "7:30 PM",  # This could be retrieved from meeting_info if available
                 "venue": meeting_info["location"],
-                "old_business": old_business or "",
-                "new_business": new_business or ""
+                "oldBusinessItems": old_business_items,
+                "newBusinessItems": new_business_items,
             }
             
             # Render the email template

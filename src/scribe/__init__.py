@@ -1,7 +1,9 @@
 # src/scribe/__init__.py
-from flask import Flask
+
 
 def create_ui_app():
+    from flask import Flask
+
     app = Flask(__name__)
     app.secret_key = "dev"  # Replace with a secure key in production
 

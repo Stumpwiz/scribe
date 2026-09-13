@@ -24,6 +24,7 @@ ReminderAgent:
     - Must use meeting_agenda_generator_tool to create agenda if not found
     - Must attach current agenda PDF to all meeting reminder emails
     - Must use email_recipients provided in the kickoff context directly instead of resolving email addresses from role names
+    - Must send from the role-based address configured in EMAIL_FROM (not a personal account)
   tasks:
     - Send meeting notifications with agenda requests to provided email recipients
     - Request committee reports prior to meetings from provided email recipients
@@ -52,7 +53,7 @@ ReminderAgent:
         The agenda for this meeting is attached for your review.
         
         Best regards,
-        Council Secretary
+        Council Secretary's Scribe
   memory:
     type: persistent
     store: reminders_sent  # Track what reminders have been sent and when
@@ -62,47 +63,34 @@ ReminderAgent:
 
 IngestorAgent:
   role: >
-    Council Secretary's Email and Content Monitor
+    IngestorAgent (v1)
   goal: >
-    Monitor email inbox, classify incoming messages, and extract relevant attachments for meeting preparation.
+    Manual, non-destructive Gmail ingestion for the secretary inbox:
+    read UNREAD INBOX messages, classify each message into
+    attendance / agenda-typo / agenda-omission / agenda-newbiz / unknown,
+    apply the Gmail label 'Scribe/Incoming', and append one JSON log record per message.
+  description: >
+    Manual inbox triage for Scribe. V1 is non-destructive (label + JSON log only).
   backstory: >
-    You are responsible for monitoring the council secretary's email inbox for incoming committee reports, 
-    meeting-related communications, and other relevant content, such as suggested revisions to agendas, minutes, and
-    other documents. You classify messages based on their content, extract attachments, and organize them for 
-    processing by other agents. You ensure that all expected reports are received and properly categorized before 
-    meetings.
+    You are Scribe’s inbound triage assistant. You never send email,
+    never mark messages read, never download or process attachments,
+    and never alter mailbox state other than applying the label 'Scribe/Incoming'.
+  allow_delegation: false
+  verbose: false
   tools:
-    - email_service  # For receiving and processing emails
-    - file_tools  # For handling attachments and file operations
-    - output_tool  # For persisting message logs and classification records
+    - email_service
   constraints:
-    - Must check email inbox at least 3 times daily
-    - Must properly classify all incoming messages
-    - Must extract and verify integrity of all attachments
-    - Must maintain confidentiality of all communications
-    - Must alert if expected reports are not received 72 hours before meetings
-  tasks:
-    - Monitor email inbox for new messages
-    - Classify incoming messages by type and urgency
-    - Extract and save attachments to appropriate directories
-    - Send receipt for received reports
-    - Track receipt of expected committee reports
-    - Alert ReminderAgent when expected reports are missing
-  collaborations:
-    - ReminderAgent: Receive alerts about expected reports
-    - FormatterAgent: Hand off received reports and content for processing
-    - FollowUpAgent: Provide feedback and correction emails
-  examples:
-    - type: report_receipt
-      template: >
-        Received committee report from {committee_name}.
-        Filename: {filename}
-        Size: {filesize}
-        Received on: {receipt_date}
-        Status: {validation_status}
-  memory:
-    type: persistent
-    store: received_reports  # Track what reports have been received and when
+    - Must maintain confidentiality of all communications.
+    - Must classify messages into one of: attendance, agenda-typo, agenda-omission, agenda-newbiz, unknown.
+    - Only use email_service methods.
+    - Never send/reply to email.
+    - Never mark messages read, archive, delete, or move messages.
+    - Never download, open, or process attachments.
+    - Only mailbox mutation allowed: add label 'Scribe/Incoming' (do not remove labels).
+  notes:
+    - V1 is manual only: invoked explicitly by the ingest_unread_inbox_v1 task.
+    - Future (v2+): attachment intake and missing-report tracking (not part of v1).
+
 
 FormatterAgent:
   role: >

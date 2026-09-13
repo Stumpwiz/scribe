@@ -13,17 +13,31 @@
 <div class="container mt-4">
     <h1 class="mb-4">📋 Send Meeting Reminder</h1>
 
-    {% if success %}
-    <div class="alert alert-success" role="alert">
-        <h4 class="alert-heading">Success!</h4>
-        <p>The meeting reminder has been sent successfully.</p>
-    </div>
-    {% endif %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show" role="alert">
+                    <h4 class="alert-heading">{{ 'Success!' if category == 'success' else 'Error!' }}</h4>
+                    <p>{{ message }}</p>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
 
     {% if error %}
     <div class="alert alert-danger" role="alert">
         <h4 class="alert-heading">Error!</h4>
         <p>{{ error }}</p>
+    </div>
+    {% endif %}
+
+    {% if dry_run_result %}
+    <div class="alert alert-info" role="alert">
+        <h4 class="alert-heading">Dry Run</h4>
+        <p>Dry run complete. No email sent.</p>
+        <div>Recipients: {{ recipient_count }}</div>
+        <div>Attachment: {{ attachment_path if attachment_path else 'None' }}</div>
     </div>
     {% endif %}
 
@@ -47,6 +61,13 @@
             <label for="new_business" class="form-label">New Business:</label>
             <textarea class="form-control" id="new_business" name="new_business" rows="4" 
                       placeholder="Enter new business items here...">{{ new_business }}</textarea>
+        </div>
+
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="dry_run" name="dry_run" {{ 'checked' if dry_run_checked else '' }}>
+            <label class="form-check-label" for="dry_run">
+                Dry Run (Generate but do not send)
+            </label>
         </div>
 
         <div class="d-flex gap-2">
@@ -133,13 +154,24 @@ document.addEventListener('DOMContentLoaded', function() {
         form.classList.add('was-validated');
     });
     
-    // Reset validation state when form is reset
-    form.addEventListener('reset', function() {
+    // Reset validation state and clear form completely
+    form.addEventListener('reset', function(e) {
+        e.preventDefault();  // Prevent default reset behavior
+
+        // Clear validation states
         form.classList.remove('was-validated');
         const inputs = form.querySelectorAll('.is-invalid');
         inputs.forEach(input => {
             input.classList.remove('is-invalid');
         });
+
+        // Clear form fields completely
+        document.getElementById('old_business').value = '';
+        document.getElementById('new_business').value = '';
+
+        // Reset to next meeting date
+        const nextMeetingDate = '{{ meeting_date }}';
+        document.getElementById('meeting_date').value = nextMeetingDate;
     });
 });
 </script>

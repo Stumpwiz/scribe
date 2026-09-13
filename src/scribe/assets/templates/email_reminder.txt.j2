@@ -1,12 +1,52 @@
-Subject: {{ meetingType|capitalize }} Meeting Reminder – {{ meetingDate }}
+Subject: Report Request: {{ meetingType|upper }} Residents Council Meeting - {{ meetingDate }}
 
-This is a reminder that the upcoming {{ meetingType }} meeting will take place on:
+This message is being sent by the Council Secretary's automated agent.
 
-  📅 Date: {{ meetingDate }}
-  🕘 Time: {{ meetingTime }}
-  📍 Location: {{ venue }}
+The upcoming {{ meetingType|upper }} Residents Council meeting will take place on:
 
-The tentative agenda is attached. Please advise me of any needed additions/corrections.
+Date: {{ meetingDate }}
+Time: {{ meetingTime }}
+Location: {{ venue }}
+
+Please submit your officers' reports, liaison reports and Committee Chair reports
+for inclusion in the meeting minutes appendices. Send them to {{ reportSubmissionEmail }}.
+
+Submission Guidelines:
+
+To ensure your report is processed correctly, please:
+
+- Use a clear subject line (for example: "Finance Report", "Wing C Report")
+- Use a descriptive attachment filename (e.g., Finance.docx, WingC.pdf)
+- Send your report as an attachment (Word or PDF preferred)
+- Do not include the report in the body of the email
+
+{% if oldBusinessItems and oldBusinessItems|length > 0 -%}
+
+Old Business:
+
+{% for item in oldBusinessItems -%}
+
+- {{ item }}
+  {% endfor %}
+
+{%- endif %}
+
+{% if newBusinessItems and newBusinessItems|length > 0 -%}
+
+New Business:
+
+{% for item in newBusinessItems -%}
+
+- {{ item }}
+  {% endfor %}
+
+{%- endif %}
+
+If you have additions or corrections to the agenda, please email {{ reportSubmissionEmail }}.
+
+Note: The address {{ reportSubmissionEmail }} is monitored by an automated system. Replies to that address may not receive a response.
 
 Thank you,
-The Council Secretary
+
+Secretary's Agent
+Residents Council
