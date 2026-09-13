@@ -1,49 +1,87 @@
 # Security guide
 
-This project handles email and attachments; follow these practices to protect sensitive data.
+Scribe handles email, attachments, and Clerk contact data. Keep operational data
+local and review external actions separately from local document preparation.
 
-Configuration
-- Use a local .env (gitignored) to set:
-  - RECIPIENTS_DIR: Absolute path to a private directory with real recipient lists (council_members.json, committee_chairs.json), e.g., instance/recipients.
-  - DEFAULT_FALLBACK_EMAIL: Safe fallback (e.g., notify@example.com).
-  - EMAIL_FROM: Sender mailbox used by EmailService.
-- Keep Google API credentials and tokens out of Git. Store them locally in a private directory.
+## Runtime configuration
 
-Repository hygiene
-- Private recipients directory is ignored by .gitignore. Do not commit real email lists.
-- Sample recipients under src/scribe/assets/recipients use example.com and are enforced by tests.
-- Email addresses are masked in logs to avoid leaking PII in logs and CI artifacts.
+Use ignored `.env` or private environment configuration. Tracked examples use
+example-domain addresses only.
 
-Local pre-commit scanning
-- Optional but recommended: enable pre-commit scanning before committing.
-- One-time setup:
-  - Make hook executable: chmod +x scripts/githooks/pre-commit
-  - Point Git to use the repo hooks: git config core.hooksPath scripts/githooks
-- The hook will:
-  - Run gitleaks if installed (brew install gitleaks or download from GitHub releases)
-  - Run a Python-based fallback scanner (scripts/scan_secrets.py)
+- `EMAIL_FROM`: outgoing sender identity and reminder-sender recognition during
+  ingestion. It has no real-address default. It does not select the OAuth account.
+- `REPORT_SUBMISSION_EMAIL`: address printed in reminder report-submission and
+  agenda-correction instructions; falls back to `EMAIL_FROM`, then
+  `reports@example.com` for unconfigured previews.
+- `DEFAULT_FALLBACK_EMAIL`: used when Clerk recipient lookup produces no
+  recipients, in the task's lookup-error fallback, or when the notification tool
+  is called without recipients. The unset default is `test@example.com`. Review
+  lookup warnings; a partial result can still be used when one Clerk query fails.
+- `DEV_OVERRIDE_EMAIL`: redirects non-dry-run sends through `EmailService` to a
+  development address when configured. It does not discover recipients.
+- `RECIPIENTS_DIR`: legacy JSON loader and sender-classification compatibility.
+  It is not required for normal Clerk reminders or monthly-cycle v2 ingestion.
+  Only users of those older interfaces need private JSON; do not create it as a
+  normal setup requirement. Without an override they use tracked example data.
 
-CI scanning
-- GitHub Actions workflow .github/workflows/security.yml runs gitleaks on push/PR.
-- If gitleaks fails or is unavailable, the fallback Python scanner runs and will fail the job on findings.
+Normal reminders use Clerk: Regular RC officers; Open and Association officers
+plus committee chairs, deduplicated. Association does not mean all residents.
+Task callers may supply explicit recipients. Low-level send tools use the list
+supplied by their caller. Operational Clerk data, recipient exports, and any
+legacy real-recipient JSON must stay out of Git.
 
-Incident response
-- If you suspect a secret leak:
-  - Rotate affected credentials immediately.
-  - Purge tokens and regenerate OAuth credentials where necessary.
-  - Force-push removal is not sufficient; assume compromise and rotate.
+## Gmail authentication and external actions
 
-Runtime mailbox and recipient configuration
-- Set EMAIL_FROM in the local environment for outgoing mail and recognition of
-  reminder-originated messages during ingestion. It has no real-address default.
-- REPORT_SUBMISSION_EMAIL selects the address printed in reminders for reports
-  and agenda corrections. It defaults to EMAIL_FROM, or reports@example.com for
-  unconfigured previews.
-- Configure mailbox/test-user identities locally; tracked examples are inert.
-- The main reminder workflow uses explicit recipients or the Clerk database.
-  Legacy JSON loaders and the classification workflow honor RECIPIENTS_DIR;
-  without it they use tracked example-only JSON. Keep real JSON outside Git.
-- Recipient JSON may contain address strings or structured name/email/role records
-  for RecipientLoaderTool; the classifier uses address-string lists.
-- Never publish local output archives, reminder archives, packaging metadata,
-  private restart notes, or authentication files.
+The Scribe-specific `src/scribe/google_auth` helper is locally provisioned and
+intentionally excluded from Git, along with credentials and tokens. Obtain it
+through the trusted maintainer. The repository currently lacks a complete
+fresh-clone provisioning mechanism; installing the third-party `google-auth`
+package does not supply the Scribe helper.
+
+Gmail `userId="me"` refers to the account authorized by the OAuth token.
+`EMAIL_FROM` is a configured sender header/recognition value, not authentication.
+The authorized account and permitted sender identity must be configured
+consistently. Applied ingestion downloads attachments and adds labels; other
+email paths can send or mark mail read. Do not assume universal read-only scopes.
+
+The reminder GUI listens on loopback by default. Remote access needs an
+appropriate protected connection; do not expose its Flask development server or
+debugger publicly. Verify dry-run state before using the send interface.
+
+## Repository and log hygiene
+
+- Keep private addresses, credentials, tokens, attachments, generated meeting
+  outputs, recipient/reminder archives, and private operational notes out of Git.
+- Tracked recipient examples use `example.com`; tests enforce example-only data.
+- Cycle `report_state.json` is tracked source policy. Ordinary cycle input and
+  generated manifests remain local; manifests are derived, not policy storage.
+- Keep private recovery archives and history references local; never push them.
+- Some logs/audits mask addresses, but redaction is not universal. DEBUG recipient
+  audits and some legacy/error logs can disclose operational details. Inspect
+  logs before sharing them or uploading CI artifacts.
+
+## Secret-scanner coverage and limits
+
+The optional `scripts/githooks/pre-commit` hook runs gitleaks if installed and
+then `scripts/scan_secrets.py`. Enabling it uses
+`git config core.hooksPath scripts/githooks` after making the hook executable.
+The hook's gitleaks invocation uses `--no-git`; it is not a history audit.
+
+`.github/workflows/security.yml` runs gitleaks with full checkout history and
+uses the Python fallback on gitleaks failure. A passing fallback is not proof
+that an earlier gitleaks finding was harmless.
+
+The fallback scans selected text extensions in the working filesystem, not a
+specified Git commit range or just staged files. It does not implement Git's
+ignore rules; its path-component exclusions do not reliably exclude nested paths
+listed with slashes. It can inspect local material, miss binary/archive content,
+miss unquoted secrets or credentials embedded in connection URLs, and produce
+false positives. Its printed context is not guaranteed safe to share. Do not
+regard a passing scan as proof that a tree or its history is publication-safe.
+Review the intended diff and historical blobs when publishing unpublished work.
+
+## Incident response
+
+If a credential may have leaked, rotate it and coordinate remediation. Deleting
+a file or rewriting Git history does not revoke a credential or remove copies
+already obtained by others.

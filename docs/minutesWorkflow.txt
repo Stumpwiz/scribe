@@ -1,59 +1,52 @@
 Drafting Minutes
 
-Current workflow
-1. Update the appropriate minutes template in src/scribe/assets/templates/ with
-   meeting-specific body text such as attendance, approvals, old business, new
-   business, questions, and adjournment.
-   a. Templates are minutes_association.tex.j2, minutes_open.tex.j2, and
-      minutes_regular.tex.j2.
-2. Transfer the M4A recording of the meeting from phone to disk.
-3. Generate a transcript and summary for the cycle. Review:
+Use docs/monthly-cycle-runbook.md for detailed commands, intentional appendix
+omissions, Open wing-placeholder rules, verification, and cycle closeout.
+Run module commands from the repository root in the configured environment.
+
+1. Review the meeting recording/transcript and summary. The cycle summary is:
    src/scribe/output/cycles/YYYY-MM/transcript.txt.summary.md
-4. Use the summary and meeting record to prepare minutes body text and optional
-   officer narrative fragments.
-   a. Store officer fragments in:
-      src/scribe/output/cycles/YYYY-MM/officer_reports/
-   b. Supported filenames are president.tex, vicePresident.tex, treasurer.tex,
-      secretary.tex, and administrativeAssistant.tex.
-   c. Fragments contain narrative paragraphs only. Officer subsection headings
-      and appendix-reference sentences are supplied by the template.
-   d. Review fragments for factual accuracy and LaTeX safety. Missing fragments
-      are allowed.
-5. Stage and format reports with module invocation:
-   uv run python -m src.scribe.cli.run_cycle \
-     --cycle YYYY-MM \
-     --apply
-6. If reports were added after an earlier staging run, rerun the applied cycle
-   command above. Already-staged Gmail messages are skipped; newly arrived
-   unlabeled reports are staged. Then refresh downstream artifacts:
-   uv run python -m src.scribe.cli.collect_pdfs \
-     --cycle YYYY-MM \
-     --overwrite
-   uv run python -m src.scribe.cli.format_all \
-     --cycle YYYY-MM \
-     --input-dir src/scribe/output/cycles/YYYY-MM/pdf
-7. Build the regular minutes PDF:
-   uv run python -m src.scribe.cli.build_minutes --cycle YYYY-MM --type regular
-8. Before distribution, verify that expected reports, late reports, officer
-   narratives, appendix references, and multi-page report appendices are
-   complete and in the correct order.
-9. Use the email tools to mail the draft to the appropriate addressees.
+   Prepare accurate meeting body text in the appropriate template:
+   minutes_regular.tex.j2, minutes_open.tex.j2, or minutes_association.tex.j2
+   under src/scribe/assets/templates/. Do not invent report text.
+2. Prepare optional narrative-only, LaTeX-safe officer fragments under:
+   src/scribe/output/cycles/YYYY-MM/officer_reports/
+   Filenames: president.tex, vicePresident.tex, treasurer.tex, secretary.tex,
+   administrativeAssistant.tex. Labels/headings are template-controlled;
+   missing fragments are allowed. These manually authored files are source
+   material even though they live under output.
+3. Preview report staging (reads Gmail, saves no report attachments):
+   uv run python -m src.scribe.cli.run_cycle --cycle YYYY-MM --skip-collect --skip-format
+4. When applied ingestion is intended, run:
+   uv run python -m src.scribe.cli.run_cycle --cycle YYYY-MM --apply
+   This downloads attachments, applies staging labels, and runs collection and
+   formatting. Already-staged messages are normally skipped; rerun for new reports.
+   A nonzero collection result stops formatting unless --keep-going is used.
+   Review missing reports first; --keep-going does not make failures successful.
+5. To refresh local reports without another Gmail operation:
+   uv run python -m src.scribe.cli.collect_pdfs --cycle YYYY-MM --overwrite
+   uv run python -m src.scribe.cli.format_all --cycle YYYY-MM --input-dir src/scribe/output/cycles/YYYY-MM/pdf
+   Review collection errors before choosing to run formatting/building separately.
+6. Build the correct meeting type, replacing TYPE with regular, open, or association:
+   uv run python -m src.scribe.cli.build_minutes --cycle YYYY-MM --type TYPE
+   The templates differ; follow the runbook for Open appendix/placeholder behavior.
+7. Review the draft for factual accuracy, report delivery, officer narratives,
+   actual appendix references, complete report pages, and appendix order.
+   Confirm intentional omissions through tracked cycle report_state.json;
+   do not hand-edit the generated manifest to encode policy.
+8. For authorized draft distribution, obtain the current cut-and-paste list
+   from Clerk. Regular RC: officers. Open RC and Association: officers plus
+   committee chairs, deduplicated, not all residents. The Secretary distributes
+   the reviewed draft separately; the monthly cycle does not automatically mail it.
+9. Publish only after separate review/authorization. Confirm website publication
+   before removing superseded drafts/backups; retain the reviewed full-quality
+   PDF, compacted distributed copy, originals, and required source inputs.
 
-Report appendix behavior
-- Do not manually edit the minutes template to specify report page counts.
-- The formatter writes PNG appendix assets and records their ordered filenames
-  in src/scribe/output/cycles/YYYY-MM/manifest.json.
-- The minutes templates read the manifest and generate one \reportpage entry
-  for each listed PNG file.
-- The current appendix syntax is \reportbegin, repeated \reportpage entries,
-  and \reportend. The old \report macro remains only as a compatibility
-  wrapper.
-- Formatter output naming is based on emitted, nonblank pages after blank-page
-  suppression:
-  a. one emitted page: <office>.png
-  b. multiple emitted pages: <office>-1.png, <office>-2.png, etc.
-- The cycle manifest should list only PNG filenames that exist on disk.
-
-Historical note
-- Older workflows required manual conversion or manual report page entries in
-  the template. That guidance is obsolete for current cycle production.
+Report pagination
+- Do not manually specify report page counts in the minutes template.
+- The formatter records ordered PNG filenames in the cycle root manifest.json.
+- Templates emit one \reportpage per selected PNG using \reportbegin and
+  \reportend. The old \report macro is only a compatibility wrapper.
+- Naming follows emitted nonblank pages after blank-page suppression:
+  one page: <office>.png; multiple pages: <office>-1.png, <office>-2.png, etc.
+- Verify listed PNGs exist and every selected report is complete in the PDF.

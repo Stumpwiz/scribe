@@ -58,13 +58,55 @@ This command:
 - collects PDFs into `src/scribe/output/cycles/YYYY-MM/pdf/`;
 - formats downstream artifacts.
 
+The normal ingestion path is `run_cycle → cli.ingest → stage_attachments_v2`.
+It uses report filename/subject inference and can use Clerk sender-to-office
+lookup; it does not require recipient JSON files.
+
+A nonzero staging or collection result stops the command before later steps by
+default. Ordinary missing reports can cause a nonzero collection result even
+when placeholders are available. Review the summary before continuing. Adding
+`--keep-going` permits downstream processing but does not turn failures into
+successes: the overall command still returns a failure status. After reviewing
+missing reports, you can instead run the explicit local `format_all` and
+`build_minutes` commands below; they do not repeat Gmail ingestion.
+
 ## Agenda Preparation and Reminder Email Generation
 
 Launch the Reminder GUI with:
 
 ```bash
-uv run python scripts/run_reminder_gui.py
+DRY_RUN=true uv run python scripts/run_reminder_gui.py
 ```
+
+This explicit environment setting selects preview delivery. The launcher only
+sets `DRY_RUN=true` when the variable is absent and `--allow-send` is not used;
+an inherited `DRY_RUN=false` is not overridden. For an authorized real send,
+configure `DRY_RUN=false`, use `--allow-send`, and verify the effective state and
+previewed recipients/agenda before sending. These environment prefixes use shell
+syntax; IDE run configurations can set the same variable directly.
+
+Normal reminders query Clerk dynamically:
+
+| Meeting type | Recipients |
+| --- | --- |
+| Regular RC | Residents Council Officers mailing list |
+| Open RC | Residents Council Officers + committee chairs, deduplicated |
+| Association | Residents Council Officers + committee chairs, deduplicated |
+
+Association reminders do not automatically go to all residents. The task-based
+workflow may supply nonempty `email_recipients`; otherwise it uses the same Clerk
+lookup. Low-level notification/send tools use their caller's `recipients`/`to`
+list and do not independently discover it. Review lookup warnings and fallback
+recipients: an empty Clerk result uses `DEFAULT_FALLBACK_EMAIL` (unset default
+`test@example.com`), and a partial query failure can leave a partial list.
+
+`RECIPIENTS_DIR` is only for retained legacy JSON interfaces and sender
+classification, not normal reminders or monthly-cycle ingestion. Missing private
+JSON is not a defect in these supported workflows; do not create it for normal
+setup. `EMAIL_FROM` is sender identity/reminder recognition, while
+`REPORT_SUBMISSION_EMAIL` selects the printed submission/correction address and
+falls back to `EMAIL_FROM`. See [Security](SECURITY.md) for other fallbacks and
+development redirection.
 
 ### Remote development (JetBrains Gateway)
 
@@ -73,13 +115,16 @@ the same machine as the GUI. When the GUI runs on the development host through J
 Gateway from another computer, launch it with:
 
 ```bash
-uv run python scripts/run_reminder_gui.py --host 0.0.0.0
+DRY_RUN=true uv run python scripts/run_reminder_gui.py --host 0.0.0.0
 ```
 
 Then open `http://<development-host>:5000` in the client browser (for example,
 `http://192.0.2.10:5000`). Clicking the `127.0.0.1` hyperlink printed in the
 terminal opens the client's localhost, not the development host, so it will not reach
 the GUI.
+
+Use this all-interface binding only on a protected development network. Prefer
+a protected tunnel to loopback when available; do not expose Flask debug mode.
 
 ## Post-Meeting Minutes Production
 
@@ -108,8 +153,8 @@ Use these filenames when the corresponding officer narrative is available:
 - `secretary.tex`
 - `administrativeAssistant.tex`
 
-Each fragment contains narrative paragraphs only. Do not include subsection
-headings or appendix-reference sentences; those remain controlled by the
+Each fragment contains narrative paragraphs only. Do not include officer
+labels/headings or appendix-reference sentences; those remain controlled by the
 minutes template. Review every fragment for factual accuracy and make it
 LaTeX-safe before building. Missing fragment files are allowed and do not
 prevent a build.
@@ -155,6 +200,9 @@ uv run python -m src.scribe.cli.build_minutes \
 `collect_pdfs --overwrite` refreshes collected PDFs. `format_all` refreshes PNG
 appendix assets and `manifest.json`. `build_minutes` rebuilds the final PDF
 from the current manifest and officer fragments.
+
+Choose `--type regular`, `--type open`, or `--type association` for the actual
+meeting. The example above is Regular, not a default for every meeting.
 
 ### Intentionally Omit a Written Appendix
 
@@ -245,7 +293,7 @@ eligible. Entries with failed status or missing PNG files are still skipped.
 Only offices in the cycle's open appendix inventory are selected; a manifest
 entry alone does not add an office to that inventory.
 
-### Build Regular Minutes
+### Build Minutes for the Meeting Type
 
 After reports, manifest, template body edits, and officer fragments are ready:
 
@@ -263,7 +311,7 @@ uv run python -m src.scribe.cli.build_minutes \
 - Multi-report emails split correctly by attachment.
 - Expected PDFs created.
 - Officer narrative fragments, when present, appear beneath the correct officer
-  subsection heading and before the appendix-reference sentence.
+  label/heading and agree with the template's appendix-reference wording.
 - Console summary reviewed.
 - Gmail messages labeled `Scribe/Incoming`.
 
@@ -273,15 +321,47 @@ uv run python -m src.scribe.cli.build_minutes \
 - Known non-submissions and committees that did not meet are handled
   appropriately.
 - Late reports appear in the appendix.
-- All five officer subsection headings appear.
+- Expected officer labels/headings appear in the selected template (Open uses
+  description-list labels rather than five officer subsection headings).
 - Officer narratives appear beneath the correct headings.
-- Appendix-reference sentences remain in place.
+- Appendix-reference clauses agree with actual selected appendices. Intentional
+  omissions have neither an appendix nor a missing-report placeholder, while
+  report delivery remains recorded accurately in the meeting prose.
 - Every multi-page report is complete.
 - No literal placeholders such as `[director-8]` appear.
 - No unexpected blank appendix pages appear.
 - Formatter manifest PNG filenames exist on disk under
   `src/scribe/output/cycles/YYYY-MM/png/`.
 - Final PDF opens, and page order is correct.
+
+## Draft-Minutes Distribution
+
+After draft review, the Secretary obtains the current cut-and-paste mailing list
+from Clerk: Regular RC minutes go to RC officers; Open RC and Association minutes
+go to RC officers plus committee chairs. Association does not mean all residents.
+Review/deduplicate the combined list and distribute only when authorized.
+Do not put addresses in source documents or Git. This manual procedure is
+separate from automated reminder delivery; the monthly cycle does not email the
+draft automatically. Website publication is a separate reviewed operation.
+
+## Cycle Artifact Closeout
+
+Confirm review, distribution, and intended website publication before deleting
+superseded artifacts. Preserve the reviewed full-quality PDF and the compacted
+distributed/published copy, with a clear local record of which is which.
+
+Retain received originals, canonical report PDFs used as stable formatting
+inputs, tracked cycle `report_state.json`, and manually authored cycle inputs
+needed for provenance. This includes officer fragments under the output tree;
+they are not regenerated merely because their directory is ignored.
+
+After verification/publication, superseded drafts, stale report images,
+XeLaTeX `.aux`/`.log`/`.toc` files, and temporary correction backups with no
+unique source material can be removed. Review other generated intermediates
+before removal. Keep source logos/templates and useful final assets; generated
+`.tex` and the final manifest can provide build provenance even though the
+manifest is derived. This closeout guidance is not authorization to bulk-delete
+older cycles or historical records.
 
 ## Recovery After a Classification Fix
 
