@@ -510,10 +510,33 @@ class EmailService(BaseTool):
 
     @staticmethod
     def _extract_attachment_metadata_v2(payload: dict[str, Any]) -> list[dict[str, Any]]:
-        """
-        Alias to v1 helper (kept for clarity in v2 code path).
-        """
-        return EmailService._extract_attachment_metadata(payload)
+        """Exclude inline images accompanying documents, preserving image-only reports."""
+        attachments = EmailService._extract_attachment_metadata(payload)
+        # Use the same document types that provide strong report signals in
+        # _classify_message. Without a document, retain image submissions.
+        if not any(
+            a["filename"].lower().endswith((".pdf", ".docx", ".doc", ".xlsx", ".xls"))
+            for a in attachments
+        ):
+            return attachments
+
+        inline_images: set[str] = set()
+
+        def walk(part: dict[str, Any]) -> None:
+            headers = {
+                h["name"].lower(): h.get("value", "")
+                for h in part.get("headers", [])
+            }
+            disposition = headers.get("content-disposition", "").split(";", 1)[0].strip().lower()
+            if (part.get("mimeType") or "").lower().startswith("image/") and disposition == "inline":
+                attachment_id = (part.get("body") or {}).get("attachmentId")
+                if attachment_id:
+                    inline_images.add(attachment_id)
+            for child in part.get("parts") or []:
+                walk(child)
+
+        walk(payload)
+        return [a for a in attachments if a["attachment_id"] not in inline_images]
 
     @staticmethod
     def _get_message_metadata(service: Any, message_id: str) -> dict[str, Any]:

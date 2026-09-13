@@ -128,6 +128,10 @@ uv run python -m src.scribe.cli.run_cycle \
 Already-staged Gmail messages are skipped during the normal applied run. Newly
 arrived unlabeled reports are staged.
 
+When a message includes a recognized document attachment, v2 staging excludes
+image parts explicitly marked `Content-Disposition: inline`. Image-only
+submissions and images explicitly attached as attachments remain eligible.
+
 Then rebuild downstream artifacts:
 
 ```bash
