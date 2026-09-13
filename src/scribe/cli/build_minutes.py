@@ -185,6 +185,10 @@ def _safe_label(office: str, used: set[str]) -> str:
     return label
 
 
+def is_wing_office(office: str) -> bool:
+    return bool(re.fullmatch(r"wing[A-G]", office or ""))
+
+
 def build_open_appendix_reports(manifest: Dict[str, Any], cycle_root: Path) -> tuple[list[Dict[str, Any]], list[str]]:
     offices = manifest.get("offices")
     if not isinstance(offices, dict):
@@ -204,11 +208,12 @@ def build_open_appendix_reports(manifest: Dict[str, Any], cycle_root: Path) -> t
         if not isinstance(entry, dict):
             skipped.append(f"{office}: skipped (manifest entry is not an object)")
             continue
-        if bool(entry.get("placeholder_used")):
-            skipped.append(f"{office}: skipped (no assets present)")
-            continue
         if entry.get("status") not in (None, "ok"):
             skipped.append(f"{office}: skipped (status={entry.get('status')})")
+            continue
+        placeholder_used = bool(entry.get("placeholder_used", False))
+        if placeholder_used and is_wing_office(str(office)):
+            skipped.append(f"{office}: skipped (placeholder wing report omitted from open minutes)")
             continue
         png_files = entry.get("png_files") or []
         if not isinstance(png_files, list):

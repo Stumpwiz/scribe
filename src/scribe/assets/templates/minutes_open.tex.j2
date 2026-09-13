@@ -139,7 +139,8 @@
 \fancyfoot[LE,RO]{\thepage\ of \pageref{LastPage}}
 
 \section{Call to Order}
-An open meeting of the Residents Residents Council was held on \meetingDate~in the Performing Arts Center.  It began at 2:00 p.m.~and was chaired by Luke Yackley with George Wright as secretary.
+An open meeting of the Residents Residents Council was held on \meetingDate~in the Performing Arts Center.  It began
+at 2:00 p.m.~and was chaired by Luke Yackley with George Wright as secretary.
 
 \section{Attendance}
 \label{attendanceTable}
@@ -157,7 +158,7 @@ Lois Lashar         & \checkmark &  \\
 Luke Yackley        & \checkmark &  \\
 Richard Compton     & \checkmark &  \\
 Spence Lieske       & \checkmark &  \\
-Walt Brooksbank     & \checkmark &  \\
+%Walt Brooksbank     & \checkmark &  \\
 Weezie Brown        & \checkmark &  \\[.25in]
 \end{tabular}
 
@@ -166,13 +167,13 @@ Weezie Brown        & \checkmark &  \\[.25in]
 \vspace{.1in}
 {\em Non-Voting Attendees} & {\em Present} & {\em Absent} \\
 David Denton, Executive Director       & \checkmark &  \\
+Ellen Bresh, Scholarship               & \checkmark &  \\
 Tom Scheurich, Building/Maintenance    & \checkmark &  \\
 Gerry Buckley, Dining                  & \checkmark &  \\
-Jackie Troutman, Employee Appreciation & \checkmark &  \\
+Jackie Troutman, Employee Appreciation &  & \checkmark \\
 Ed Lehwald, Environment/Landscape      & \checkmark &  \\
-Nancy Burke, Finance                   & \checkmark &  \\
-Marie Scheurich, Library               & \checkmark &  \\
-Claire Ross\'{e}, Scholarship          & \checkmark &  \\
+Nancy Burke, Finance                   &  & \checkmark \\
+Marie Scheurich, Library               &  & \checkmark \\
 Veronica Cryan, Special Event \& Trips & \checkmark &  \\
 \end{tabular}
 
@@ -183,76 +184,116 @@ Veronica Cryan, Special Event \& Trips & \checkmark &  \\
 Minutes of \lastMeetingDate~were approved as submitted.
 
 \section{Officers' Reports}
-\subsection*{President}
+\begin{description}
+\item[President.]
 {% if officer_report_inputs.president is defined %}
 \input{"{{ officer_report_inputs.president }}"}
 
 {% endif %}
-President Luke Yackley's report appears in Appendix \ref{app:president}, page \pageref{app:president}.
+Luke Yackley solicited nominations for the Extraordinary Service Award and the Legacy Award. He also
+solicited a Liffey B wing representative.  His report appears in Appendix \ref{app:president}, page \pageref{app:president}.
 
-\subsection*{Vice President}
+\item[Vice President.]
 {% if officer_report_inputs.vicePresident is defined %}
 \input{"{{ officer_report_inputs.vicePresident }}"}
 
 {% endif %}
-Vice President Rich Compton's report appears in Appendix \ref{app:vicePresident}, page \pageref{app:vicePresident}.
+Rich Compton presented the consolidated wing report and suggested an {\em ad hoc} resident/staff
+group to address recycling/trash-room issues.  His report appears in Appendix \ref{app:vicePresident},
+page \pageref{app:vicePresident}.
 
-\subsection*{Treasurer}
+\item[Treasurer.]
 {% if officer_report_inputs.treasurer is defined %}
 \input{"{{ officer_report_inputs.treasurer }}"}
 
 {% endif %}
-Treasurer Charles Blair's report appears in Appendix \ref{app:treasurer}, page \pageref{app:treasurer}.
+Charles Blair's report appears in Appendix \ref{app:treasurer}, page \pageref{app:treasurer}.
 
-\subsection*{Secretary}
+\item[Secretary.]
 {% if officer_report_inputs.secretary is defined %}
 \input{"{{ officer_report_inputs.secretary }}"}
 
 {% endif %}
-Secretary George Wright's report appears in Appendix \ref{app:secretary}, page \pageref{app:secretary}.
+George Wright's report appears in Appendix \ref{app:secretary}, page \pageref{app:secretary}.
 
-\subsection*{Administrative Assistant}
+\item[Administrative Assistant.]
 {% if officer_report_inputs.administrativeAssistant is defined %}
 \input{"{{ officer_report_inputs.administrativeAssistant }}"}
 
 {% endif %}
-Administrative Assistant Lois Lashar's report appears in Appendix \ref{app:administrativeAssistant}, page~\pageref{app:administrativeAssistant}.
+Lois Lashar's report appears in Appendix \ref{app:administrativeAssistant},
+page~\pageref{app:administrativeAssistant}.
+\end{description}
 
 \section{Wing Reports}
-Since Rich Compton presents a summary of wing reports, individual wing reps don't deliver oral reports.  They still submit
-written reports for the record.  These reports appear in Appendices \ref{app:wingA}--\ref{app:wingG}, pages
-\pageref{app:wingA}--\pageref{app:wingG}.
+Since Rich Compton presents a summary of wing reports, individual wing reps don't deliver oral reports.  Some wing reps
+still submit written reports for the record.  Not all individual wing reports were received; only those received are
+included as appendices.
 
 \section{Committee Reports}
+\begin{description}
+\item[Building Maintenance.] Chair Tom Scheurich's report appears in Appendix \ref{app:buildingMaintenance},
+page \pageref{app:buildingMaintenance}.
 
-Building Maintenance Committee chair Tom Scheurich's report appears in Appendix \ref{app:buildingMaintenance}, page \pageref{app:buildingMaintenance}.
+\item[Dining.] Chair Gerry Buckley's report, delivered by Jim Devine, appears in Appendix \ref{app:dining},
+page \pageref{app:dining}.
 
-Dining Committee chair Gerry Buckley's report appears in Appendix \ref{app:dining}, page \pageref{app:dining}.
+\item[Employee Appreciation.] Chair Jackie Troutman's report, delivered by Pat Gonnermann, appears in
+Appendix \ref{app:employeeAppreciation}, page \pageref{app:employeeAppreciation}.
 
-Employee Appreciation Committee chair Jackie Troutman's report appears in Appendix \ref{app:employee}, page \pageref{app:employee}.
+\item[Environment/Landscape] Chair Ed Lehwald solicited new committee members.  His report appears in Appendix
+\ref{app:environmentLandscape},
+page \pageref{app:environmentLandscape}.
 
-Environment/Landscape Committee chair Ed Lehwald's report appears in Appendix \ref{app:environmentLandscape}, page \pageref{app:environmentLandscape}.
+\item[Finance.] Chair Nancy Burke's report, delivered by Brenda Dandy, solicited new committee members.  Her
+report appears in Appendix \ref{app:finance}, page \pageref{app:finance}.
 
-Finance Committee chair Nancy Burke's report appears in Appendix \ref{app:finance}, page \pageref{app:finance}.
+\item[Library.] Chair Marie Scheurich's report, delivered by Weezie Brown, appears in Appendix
+\ref{app:library}, page \pageref{app:library}.
 
-Library Committee chair Marie Scheurich's report appears in Appendix \ref{app:library}, page \pageref{app:library}.
+\item[Scholarship.] Chair Ellen Bresh's report appears in Appendix \ref{app:scholarship}, page \pageref{app:scholarship}.
 
-Scholarship Committee chair Claire Ross\'{e}'s report appears in Appendix \ref{app:scholarship}, page \pageref{app:scholarship}.
-
-Special Events and Trips Committee chair Veronica Cryan's report appears in Appendix \ref{app:specialEventsAndTrips}, page \pageref{app:specialEventsAndTrips}.
+\item[Special Events and Trips] Chair Veronica Cryan's report appears in Appendix
+\ref{app:specialEventsAndTrips}, page \pageref{app:specialEventsAndTrips}.
+\end{description}
 
 \section{Executive Director's Report}
 Executive Director David Denton's report appears in Appendix \ref{app:director}, page \pageref{app:director}.
 
-
 \section{Unfinished Business}
-There was no unfinished business.
+\begin{enumerate}
+\item Bylaws amendment (information only): introduced in July and approved by the Council in August; to be
+presented to the Residents Association in December.
+\item Hand‑sanitizer dispensers at trash rooms (from prior discussion): No installations planned due to
+cost/maintenance; residents/helpers advised to wash hands after disposing of trash.
+\end{enumerate}
 
 \section{New Business}
-There was no new business.
+\begin{enumerate}
+\item Officer elections: Conducted per bylaws at the September open meeting; single nominees for all offices; floor
+nominations invited and none offered; officers declared elected without ballot.
+\begin{itemize}
+\item President: Luke Yackley
+\item Vice President: Rich Compton
+\item Treasurer: Jim Devine
+\item Secretary: George Wright
+\item Administrative Assistant: Joanna Hill-Devine
+\end{itemize}
+\end{enumerate}
+
+\section{Questions from the Floor}
+\begin{enumerate}
+\item Apartment door nameplates: current temporary names are not permanent; a facility-wide signage project
+($\sim 900$ signs) is in design with a vendor.
+\item “Clerk” reference clarified: a record‑keeping application for rosters/committee membership.
+\item Renovations: second‑floor plans to be presented Sept 29 (schematic set; detailed design in progress).
+\item Shannon 6th-floor lamps: need for outlets and bulbs; Facilities to add outlets and ensure bulbs.
+\item Shannon 4th-floor post-construction dust/debris: Environmental Services to vacuum/clean.
+\item Bus replacement: four proposals received; trade-in planned; build time $\sim 6$--9 months after order.
+\end{enumerate}
 
 \section{Adjournment}
-Chair Luke Yackley adjourned the meeting at 3:04 p.m.
+Chair Luke Yackley adjourned the meeting at 3:20 p.m.
 
 \clearpage
 \appendix

@@ -121,7 +121,7 @@ def test_regular_minutes_inputs_existing_officer_fragments_only(tmp_path: Path):
 def test_officer_report_headings_and_inputs_render_in_all_minutes_templates(tmp_path: Path):
     for template_name, minutes_type, secretary_text in [
         ("minutes_regular.tex.j2", "regular", "Secretary George Wright's report appears"),
-        ("minutes_open.tex.j2", "open", "Secretary George Wright's report appears"),
+        ("minutes_open.tex.j2", "open", "George Wright's report appears"),
         ("minutes_association.tex.j2", "association", "Secretary George Wright had no report."),
     ]:
         cycle_root = tmp_path / minutes_type / "2026-07"
@@ -145,10 +145,11 @@ def test_officer_report_headings_and_inputs_render_in_all_minutes_templates(tmp_
         tex = tex_path.read_text(encoding="utf-8")
 
         for heading in ["President", "Vice President", "Treasurer", "Secretary", "Administrative Assistant"]:
-            assert f"\\subsection*{{{heading}}}" in tex
+            heading_tex = f"\\item[{heading}.]" if minutes_type == "open" else f"\\subsection*{{{heading}}}"
+            assert heading_tex in tex
+        secretary_heading = r"\\item\[Secretary\.\]" if minutes_type == "open" else r"\\subsection\*\{Secretary\}"
         assert re.search(
-            r"\\subsection\*\{Secretary\}\s+"
-            r'\\input\{"officer_reports/secretary\.tex"\}.*?'
+            secretary_heading + r'\s+\\input\{"officer_reports/secretary\.tex"\}.*?'
             + re.escape(secretary_text),
             tex,
             flags=re.DOTALL,

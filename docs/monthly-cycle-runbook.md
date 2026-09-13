@@ -195,6 +195,13 @@ This removes the former practical limit that came from fixed positional page
 arguments in the old `\report` macro. The old macro remains only as a
 compatibility wrapper.
 
+Ordinary missing non-wing reports receive the existing placeholder treatment.
+Open minutes include their valid placeholder PNGs in the normal appendix order,
+but continue to exclude wing-report placeholders; received wing reports remain
+eligible. Entries with failed status or missing PNG files are still skipped.
+Only offices in the cycle's open appendix inventory are selected; a manifest
+entry alone does not add an office to that inventory.
+
 ### Build Regular Minutes
 
 After reports, manifest, template body edits, and officer fragments are ready:
