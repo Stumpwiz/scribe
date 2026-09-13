@@ -156,6 +156,49 @@ uv run python -m src.scribe.cli.build_minutes \
 appendix assets and `manifest.json`. `build_minutes` rebuilds the final PDF
 from the current manifest and officer fragments.
 
+### Intentionally Omit a Written Appendix
+
+Meeting delivery belongs in the manually authored minutes prose. To record that
+an office intentionally has no written appendix for a cycle, create the optional
+source input `src/scribe/input/cycles/YYYY-MM/report_state.json`:
+
+```json
+{
+  "offices": {
+    "library": {"appendix": "none"}
+  }
+}
+```
+
+This is an example policy, not a standing rule for the Library. Only
+`{"appendix": "none"}` is supported; remove an office from this input to restore
+its usual processing. An absent file or unspecified office keeps existing
+behavior. Invalid policies and unknown office names fail before output writes.
+
+Both `collect_pdfs` and `format_all` automatically read this cycle input, including
+when invoked by `run_cycle`. Collection skips the office before selecting or
+converting files and before placeholder filling. Formatting records an explicit
+`status: "omitted"` entry with `source_pdf: null`, `pages: 0`, `png_files: []`, and
+`placeholder_used: false`. Intentional omissions are reported separately from
+missing reports and failures. Existing source/PDF/PNG files are retained but do
+not override the policy or enter the Open-minutes appendix.
+
+Cycle `report_state.json` files are version-controlled source policy because
+reproducing a cycle requires its appendix decisions. The narrow `.gitignore`
+exception covers only `src/scribe/input/cycles/YYYY-MM/report_state.json`; other
+input material remains ignored. Include policy changes in the cycle's reviewed
+Git changes so a checkout restores the decisions along with the code. Generated
+`manifest.json` files remain derived output, not the source of this policy.
+Do not hand-edit them to record omissions. Rerun collection, formatting, and
+minutes building after changing the policy. An intentional `appendix: "none"`
+omission is distinct from an ordinary missing written report. Unspecified
+missing reports retain their existing placeholder and collector exit-code
+behavior, including the Open-meeting wing-placeholder exclusions.
+
+Review manually authored appendix-reference clauses along with meeting prose.
+The Dining and Environment/Landscape clauses in the current Open template use
+the actual selected appendix offices; the other existing clauses remain manual.
+
 The Nominating Committee report is expected only for the September cycle. In
 the open-minutes appendix it follows the standing committee reports (after
 Special Events & Trips) and precedes the Executive Director and wing reports;

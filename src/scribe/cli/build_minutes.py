@@ -320,6 +320,7 @@ def render_template(
         "minutes_type": minutes_type,
         "manifest": manifest,
         "appendix_reports": appendix_reports if minutes_type == "open" else [],
+        "appendix_offices": {report["office"] for report in appendix_reports} if minutes_type == "open" else set(),
         "officer_report_inputs": officer_report_inputs(cycle_root),
         "report_pages": lambda office, fallback_pages=None: report_pages_from_manifest(
             manifest,

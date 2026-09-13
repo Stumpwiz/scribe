@@ -19,6 +19,7 @@ import shutil
 
 from src.scribe.tools.formatter_service import FormatterService
 from src.scribe.report_inventory import reports_for_cycle
+from src.scribe.report_state import load_omitted_offices
 
 
 BASE_SRC = Path(__file__).resolve().parents[2]  # .../src
@@ -244,6 +245,7 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     try:
         mapping = resolve_mapping(map_path, cycle)
+        omitted_offices = load_omitted_offices(cycle, mapping)
     except Exception as exc:
         parser.error(str(exc))
 
@@ -266,6 +268,15 @@ def main(argv: Optional[List[str]] = None) -> int:
     missing_placeholder_flag = not placeholder_available
 
     for office, pdf_name in sorted(mapping.items()):
+        if office in omitted_offices:
+            offices[office] = {
+                "source_pdf": None,
+                "placeholder_used": False,
+                "pages": 0,
+                "png_files": [],
+                "status": "omitted",
+            }
+            continue
         entry, success, missing_placeholder, source_missing = process_office(
             office=office,
             source_pdf_name=pdf_name,
@@ -318,6 +329,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         print(f"Output root: {cycle_root}")
         print(f"Placeholder template: {'found' if placeholder_available else 'MISSING'}")
         print(f"Counts -> ok: {ok_count}, failed: {fail_count}, placeholder-used: {placeholder_count}")
+        if omitted_offices:
+            print(f"Intentionally omitted (no written appendix): {', '.join(sorted(omitted_offices))}")
         if missing_sources:
             print("Missing source PDFs:")
             for item in missing_sources:
@@ -338,6 +351,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         "fail_count": fail_count,
         "placeholder_count": placeholder_count,
         "missing_sources": missing_sources,
+        "omitted_offices": sorted(omitted_offices),
         "missing_placeholder": missing_placeholder_flag,
         "exit_code": exit_code,
     }

@@ -6,7 +6,13 @@ __pycache__/
 .idea/
 .idea/*
 src/scribe/output
-src/scribe/input
+# Track only cycle report-state policies; keep all other input material ignored.
+src/scribe/input/*
+!src/scribe/input/cycles/
+src/scribe/input/cycles/*
+!src/scribe/input/cycles/[0-9][0-9][0-9][0-9]-[0-9][0-9]/
+src/scribe/input/cycles/*/*
+!src/scribe/input/cycles/[0-9][0-9][0-9][0-9]-[0-9][0-9]/report_state.json
 src/scribe/google_auth
 src/instance
 # Private recipients directory (keep real emails out of Git)

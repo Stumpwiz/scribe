@@ -26,6 +26,8 @@ def test_open_appendices_preserve_valid_assets_and_order_for_real_reports(tmp_pa
     tex = render_template(
         TEMPLATE_DIR / "minutes_open.tex.j2", tmp_path, "open", "logo.pdf", {}, manifest, reports,
     ).read_text()
+    for office in ("dining", "environmentLandscape"):
+        assert f"report appears in Appendix \\ref{{app:{office}}}" in tex
     positions = []
     for report in reports:
         positions.append(tex.index("\\reportbegin{" + report["title"] + "}{" + report["label"] + "}"))
@@ -76,6 +78,8 @@ def test_open_appendices_omit_missing_wing_placeholders_while_retaining_non_wing
     tex = render_template(
         TEMPLATE_DIR / "minutes_open.tex.j2", tmp_path, "open", "logo.pdf", {}, manifest, reports,
     ).read_text()
+    for office in ("dining", "environmentLandscape"):
+        assert f"report appears in Appendix \\ref{{app:{office}}}" in tex
     for report in reports:
         assert "\\reportbegin{" + report["title"] + "}{" + report["label"] + "}" in tex
     for wing in ["wingB", "wingC", "wingE", "wingF", "wingG"]:
@@ -91,3 +95,41 @@ def test_invalid_assets_remain_excluded(tmp_path, placeholder):
     assert reports == []
     assert "president: skipped (no assets present)" in skipped
     assert "vicePresident: skipped (status=failed)" in skipped
+
+
+def test_delivered_reports_without_written_appendices_keep_delivery_prose(tmp_path):
+    png_dir = tmp_path / "png"
+    png_dir.mkdir()
+    order = ordered_reports_for_cycle(OPEN_APPENDIX_ORDER, "2026-09")
+    without_written_appendix = {"dining", "environmentLandscape"}
+    offices = {}
+    for office in order:
+        # Retained files from earlier formatting must not imply inclusion.
+        name = f"{office}.png"
+        (png_dir / name).write_bytes(b"png")
+        if office not in without_written_appendix:
+            offices[office] = {
+                "status": "ok", "placeholder_used": office == "library", "png_files": [name],
+            }
+    manifest = {"cycle": "2026-09", "offices": offices}
+    reports, skipped = build_open_appendix_reports(manifest, tmp_path)
+    assert [r["office"] for r in reports] == [o for o in order if o not in without_written_appendix]
+    assert next(r for r in reports if r["office"] == "library")["placeholder_used"] is True
+    assert set(skipped) == {f"{office}: skipped (no assets present)" for office in without_written_appendix}
+
+    tex = render_template(
+        TEMPLATE_DIR / "minutes_open.tex.j2", tmp_path, "open", "logo.pdf", {}, manifest, reports,
+    ).read_text()
+    committee_section = tex.split(r"\section{Committee Reports}")[1].split(
+        r"\section{Executive Director's Report}"
+    )[0]
+    assert "Chair Gerry Buckley's report was delivered by Jim Devine." in committee_section
+    assert "Chair Ed Lehwald delivered his report and solicited new committee members." in committee_section
+    for office in without_written_appendix:
+        assert f"app:{office}" not in tex
+        assert f"\\reportpage{{{office}.png}}" not in tex
+    positions = []
+    for report in reports:
+        positions.append(tex.index("\\reportbegin{" + report["title"] + "}{" + report["label"] + "}"))
+        assert "\\reportpage{" + report["png_files"][0] + "}" in tex
+    assert positions == sorted(positions)

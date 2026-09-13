@@ -34,6 +34,7 @@ from pathlib import Path
 from typing import Dict, Optional, Tuple
 
 from src.scribe.report_inventory import reports_for_cycle
+from src.scribe.report_state import load_omitted_offices
 
 BASE_SRC = Path(__file__).resolve().parents[2]  # .../src
 DEFAULT_OUTPUT_ROOT = BASE_SRC / "scribe" / "output" / "cycles"
@@ -310,6 +311,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     map_path = Path(args.map_path).expanduser().resolve()
     try:
         mapping = resolve_mapping(map_path, cycle)
+        omitted_offices = load_omitted_offices(cycle, mapping)
     except Exception as exc:
         print(str(exc), file=sys.stderr)
         return 2
@@ -336,6 +338,8 @@ def main(argv: Optional[list[str]] = None) -> int:
     placeholder_available = placeholder_path.exists()
 
     for office, canonical_pdf in sorted(mapping.items()):
+        if office in omitted_offices:
+            continue
         office_dir = originals_root / office
         dest = pdf_root / canonical_pdf
 
@@ -395,6 +399,8 @@ def main(argv: Optional[list[str]] = None) -> int:
     print(f"Cycle root: {cycle_root}")
     print(f"Originals: {originals_root}")
     print(f"PDF dir: {pdf_root}")
+    if omitted_offices:
+        print(f"Intentionally omitted (no written appendix): {', '.join(sorted(omitted_offices))}")
     print(
         f"Counts -> copied/ok: {ok}, skipped-existing: {skipped_existing}, "
         f"missing: {missing}, placeholder-filled: {placeholder_filled}, converted_docx: {converted_docx}"
@@ -429,6 +435,7 @@ def main(argv: Optional[list[str]] = None) -> int:
         "pdf_root": str(pdf_root),
         "copied": copied,
         "missing_offices": missing_offices,
+        "omitted_offices": sorted(omitted_offices),
         "placeholder_filled_offices": placeholder_filled_offices,
         "converted_offices": converted_offices,
         "counts": {
